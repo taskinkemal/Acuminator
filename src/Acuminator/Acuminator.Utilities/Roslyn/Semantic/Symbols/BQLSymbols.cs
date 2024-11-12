@@ -63,6 +63,8 @@ namespace Acuminator.Utilities.Roslyn.Semantic.Symbols
 
 		public INamedTypeSymbol? PXViewOf_BasedOn => Compilation.GetTypeByMetadataName(TypeFullNames.PXViewOfBasedOn);
 
+		public INamedTypeSymbol IBqlSearch => Compilation.GetTypeByMetadataName(TypeFullNames.IBqlSearch)!;
+
 		internal BQLSymbols(Compilation compilation) : base(compilation)
 		{
 			PXSetupTypes = GetSetupSymbols();

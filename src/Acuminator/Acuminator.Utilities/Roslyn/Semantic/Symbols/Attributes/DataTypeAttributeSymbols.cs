@@ -2,13 +2,47 @@
 
 using Microsoft.CodeAnalysis;
 using Acuminator.Utilities.Roslyn.Constants;
+using System.Collections.Immutable;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Acuminator.Utilities.Roslyn.Semantic.Symbols
 {
 	public class DataTypeAttributeSymbols : SymbolsSetBase
 	{
 		internal DataTypeAttributeSymbols(Compilation compilation) : base(compilation)
-		{ }
+		{
+			var types = new List<INamedTypeSymbol?>() {
+				PXDBStringAttribute,
+				PXStringAttribute,
+				PXDBBinaryAttribute,
+				PXDBDecimalAttribute,
+				PXDecimalAttribute,
+				PXDBDoubleAttribute,
+				PXDoubleAttribute,
+				PXDBFloatAttribute,
+				PXFloatAttribute,
+			};
+
+			DataAttributesWithLength = types.ToImmutableArray()!;
+
+			DataAttributesWithHardcodedLength = new[]
+			{
+				(Compilation.GetTypeByMetadataName(TypeFullNames.PXDBBaseScreenIDAttribute), 8),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.PXDBWeblinkAttribute), 255),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.PXDBEmailAttribute), 255),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.PersonDisplayNameAttribute), 255),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.RMColorAttribute), 8),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.RMFontNameAttribute), 30),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.ContactDisplayNameAttribute), 255),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.PXAttributeValueAttribute), 255),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.CuryIDStringAttribute), 5),
+				(Compilation.GetTypeByMetadataName(TypeFullNames.TaxIDAttribute), 60),
+			}
+			.Where(x => x.Item1 is not null)
+			.ToImmutableDictionary<(INamedTypeSymbol?, int), INamedTypeSymbol, int>(x => x.Item1!, x => x.Item2, SymbolEqualityComparer.Default);
+		}
 
 		#region Field Unbound Attributes
 		public INamedTypeSymbol PXLongAttribute => Compilation.GetTypeByMetadataName(TypeFullNames.PXLongAttribute)!;
@@ -72,5 +106,9 @@ namespace Acuminator.Utilities.Roslyn.Semantic.Symbols
 		public INamedTypeSymbol? APTranRecognizedInventoryItemAttribute => Compilation.GetTypeByMetadataName(TypeFullNames.APTranRecognizedInventoryItemAttribute);
 
 		#endregion
+
+		public ImmutableArray<INamedTypeSymbol> DataAttributesWithLength { get; }
+
+		public ImmutableDictionary<INamedTypeSymbol, int> DataAttributesWithHardcodedLength { get; }
 	}
 }

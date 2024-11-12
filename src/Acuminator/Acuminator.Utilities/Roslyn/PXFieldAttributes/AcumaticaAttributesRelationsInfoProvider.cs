@@ -6,8 +6,11 @@ using System.Collections.Immutable;
 using System.Linq;
 
 using Acuminator.Utilities.Common;
+using Acuminator.Utilities.Roslyn.PXFieldAttributes.Enum;
+using Acuminator.Utilities.Roslyn.PXFieldAttributes.Infos;
 using Acuminator.Utilities.Roslyn.Semantic;
-
+using Acuminator.Utilities.Roslyn.Semantic.Attribute;
+using Acuminator.Utilities.Roslyn.Semantic.Dac;
 using Microsoft.CodeAnalysis;
 
 
@@ -66,7 +69,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 		/// - Normal attributes that contain some shared functionality (usually in a form of event subscription) which can be reused between Acumatica graphs.<br/>
 		/// - Aggregate attributes that besides their own functionality also collect all attributes declared on them and merge logic from these aggregated attributes.<br/>
 		/// Since aggregate attributes are also Acumatica attributes they can also be aggregated by other aggregate attributes although such complex scenarios are rare.<br/>
-		/// Thus, the resolution of all attributes is a recursive process. 
+		/// Thus, the resolution of all attributes is a recursive process.
 		/// </remarks>
 		/// <param name="attributeType">Type of the attribute.</param>
 		/// <param name="baseAttributeTypeToCheck">The base attribute type to check.</param>
@@ -99,7 +102,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 		/// <returns>
 		/// True if attribute derived from <paramref name="baseAttributeTypeToCheck"/>, false if not.
 		/// </returns>
-		internal static bool IsDerivedFromOrAggregatesAttributeUnsafe(this ITypeSymbol attributeType, ITypeSymbol baseAttributeTypeToCheck, 
+		internal static bool IsDerivedFromOrAggregatesAttributeUnsafe(this ITypeSymbol attributeType, ITypeSymbol baseAttributeTypeToCheck,
 																	  PXContext pxContext) =>
 			 IsDerivedFromAttribute(attributeType, baseAttributeTypeToCheck, pxContext.CheckIfNull(), recursionDepth: 0);
 
@@ -110,7 +113,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 
 			if (recursionDepth > MaxRecursionDepth)
 				return false;
-			 
+
 			if (attributeType.IsAggregatorAttribute(pxContext))
 			{
 				var aggregatedAcumaticaAttributes = GetAllDeclaredAcumaticaAttributesOnClassHierarchy(attributeType, pxContext);
@@ -163,7 +166,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 			}
 
 			var results = includeBaseTypes
-				? baseAcumaticaAttributeTypes.TakeWhile(a => !a.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default) && 
+				? baseAcumaticaAttributeTypes.TakeWhile(a => !a.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default) &&
 															 !a.Equals(pxAggregateAttribute, SymbolEqualityComparer.Default))
 											 .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default)
 				: new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default) { attributeType };
@@ -188,7 +191,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 				if (includeBaseTypes)
 				{
 					var aggregatedAttributeBaseAcumaticaAttributeTypes =
-						aggregatedAttributeBaseTypes.TakeWhile(baseType => !baseType.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default) && 
+						aggregatedAttributeBaseTypes.TakeWhile(baseType => !baseType.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default) &&
 																		   !baseType.Equals(pxAggregateAttribute, SymbolEqualityComparer.Default));
 
 					results.AddRange(aggregatedAttributeBaseAcumaticaAttributeTypes);
@@ -209,7 +212,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 		}
 
 		/// <summary>
-		/// Get the flattened collection of Acumatica attributes with application data defined by the <paramref name="attributeType"/> including attributes on aggregates 
+		/// Get the flattened collection of Acumatica attributes with application data defined by the <paramref name="attributeType"/> including attributes on aggregates
 		/// and <paramref name="attributeType"/> itself.
 		/// </summary>
 		///  <remarks>
@@ -228,7 +231,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 		{
 			var eventSubscriberAttribute = pxContext.CheckIfNull().AttributeTypes.PXEventSubscriberAttribute;
 
-			if (attributeApplication?.AttributeClass == null || 
+			if (attributeApplication?.AttributeClass == null ||
 				attributeApplication.AttributeClass.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default))
 				return ImmutableHashSet<AttributeWithApplication>.Empty;
 
@@ -245,7 +248,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 
 			if (!isAggregateAttribute)
 			{
-				// We can suppose that attribute types hierarchy shares the attribute application 
+				// We can suppose that attribute types hierarchy shares the attribute application
 				return includeBaseTypes
 					? baseAcumaticaAttributeTypes.TakeWhile(type => !type.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default))
 												 .Select(type => new AttributeWithApplication(attributeApplication, type))
@@ -254,15 +257,15 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 			}
 
 			var results = includeBaseTypes
-				? baseAcumaticaAttributeTypes.TakeWhile(type => !type.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default) && 
+				? baseAcumaticaAttributeTypes.TakeWhile(type => !type.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default) &&
 																!type.Equals(pxAggregateAttribute, SymbolEqualityComparer.Default))
 											 .Select(type => new AttributeWithApplication(attributeApplication, type))
 											 .ToHashSet()
 				: new HashSet<AttributeWithApplication>() { attributeWithApplication };
 
-			var allDeclaredAcumaticaAttributesApplicationsOnClassHierarchy = 
+			var allDeclaredAcumaticaAttributesApplicationsOnClassHierarchy =
 				attributeType.GetAllAttributesApplicationsDefinedOnThisAndBaseTypes()
-							 .Where(application => application.AttributeClass != null && 
+							 .Where(application => application.AttributeClass != null &&
 												   application.AttributeClass.InheritsFrom(eventSubscriberAttribute));
 
 			foreach (AttributeData aggregatedAttributeApplication in allDeclaredAcumaticaAttributesApplicationsOnClassHierarchy)
@@ -284,7 +287,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 				if (includeBaseTypes)
 				{
 					var aggregatedAttributeBaseAcumaticaAttributeTypesWithApplications =
-						aggregatedAttributeBaseTypes.TakeWhile(baseType => !baseType.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default) && 
+						aggregatedAttributeBaseTypes.TakeWhile(baseType => !baseType.Equals(eventSubscriberAttribute, SymbolEqualityComparer.Default) &&
 																		   !baseType.Equals(pxAggregateAttribute, SymbolEqualityComparer.Default))
 													.Select(baseType => new AttributeWithApplication(aggregatedAttributeWithApplication.Application, baseType));
 
@@ -297,7 +300,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 				{
 					var allDeclaredAcumaticaAttributesApplicationsOnClassHierarchy =
 						aggregatedAttributeWithApplication.Type.GetAllAttributesApplicationsDefinedOnThisAndBaseTypes()
-															   .Where(application => application.AttributeClass != null && 
+															   .Where(application => application.AttributeClass != null &&
 																					 application.AttributeClass.InheritsFrom(eventSubscriberAttribute));
 
 					foreach (AttributeData aggregatedOnAggregateAttributeApplication in allDeclaredAcumaticaAttributesApplicationsOnClassHierarchy)
@@ -320,8 +323,8 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 		/// True if equals or directly aggregates attribute, false if not.
 		/// </returns>
 		internal static bool EqualsOrAggregatesAttributeDirectly(this ITypeSymbol attribute, ITypeSymbol attributeToCheck, PXContext pxContext) =>
-			EqualsOrAggregatesAttributeDirectly(attribute.CheckIfNull(), 
-												attributeToCheck.CheckIfNull(), 
+			EqualsOrAggregatesAttributeDirectly(attribute.CheckIfNull(),
+												attributeToCheck.CheckIfNull(),
 												pxContext.CheckIfNull(), recursionDepth: 0);
 
 		private static bool EqualsOrAggregatesAttributeDirectly(ITypeSymbol attribute, ITypeSymbol attributeToCheck, PXContext pxContext, int recursionDepth)
@@ -349,5 +352,72 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 		private static IEnumerable<ITypeSymbol> GetAllDeclaredAcumaticaAttributesOnClassHierarchy(ITypeSymbol type, PXContext pxContext) =>
 			type.GetAllAttributesDefinedOnThisAndBaseTypes()
 				.Where(attribute => attribute.IsDerivedFromPXEventSubscriberAttribute(pxContext));
+
+		public static CategorizedAttributes FilterTypeAttributes(this List<DacFieldAttributeInfo> attributesWithFieldTypeMetadata)
+		{
+			List<DacFieldAttributeInfo>? typeAttributesOnDacProperty = null;
+			List<DacFieldAttributeInfo>? typeAttributesWithDifferentDataTypesOnAggregator = null;
+			bool hasNonNullDataType = false;
+
+			foreach (var attribute in attributesWithFieldTypeMetadata)
+			{
+				var dataTypeAttributes = attribute.AggregatedAttributeMetadata
+												  .Where(atrMetadata => atrMetadata.IsFieldAttribute)
+												  .ToList();
+				if (dataTypeAttributes.Count == 0)
+					continue;
+
+				typeAttributesOnDacProperty ??= new List<DacFieldAttributeInfo>(capacity: 2);
+				typeAttributesOnDacProperty.Add(attribute);
+
+				if (dataTypeAttributes.Count == 1)
+				{
+					hasNonNullDataType = hasNonNullDataType || dataTypeAttributes[0].DataType != null;
+					continue;
+				}
+
+				int countOfDeclaredNonNullDataTypes = dataTypeAttributes.Where(atrMetadata => atrMetadata.DataType != null)
+																		.Select(atrMetadata => atrMetadata.DataType!)
+																		.Distinct<ITypeSymbol>(SymbolEqualityComparer.Default)
+																		.Count();
+				hasNonNullDataType = hasNonNullDataType || countOfDeclaredNonNullDataTypes > 0;
+
+				if (countOfDeclaredNonNullDataTypes > 1)
+				{
+					typeAttributesWithDifferentDataTypesOnAggregator ??= new List<DacFieldAttributeInfo>(capacity: 2);
+					typeAttributesWithDifferentDataTypesOnAggregator.Add(attribute);
+				}
+			}
+
+			return new(typeAttributesOnDacProperty, typeAttributesWithDifferentDataTypesOnAggregator, hasNonNullDataType);
+		}
+
+		public static TypesCompatibility CheckCompatibility(this DacPropertyInfo property, DacFieldAttributeInfo dataTypeAttribute)
+		{
+			var distinctClrTypesFromDataTypeAttributes =
+				dataTypeAttribute.AggregatedAttributeMetadata
+								 .Where(atrMetadata => atrMetadata.IsFieldAttribute && atrMetadata.DataType != null)
+								 .Select(atrMetadata => atrMetadata.DataType!)
+								 .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+
+			switch (distinctClrTypesFromDataTypeAttributes.Count)
+			{
+				case 0:
+					//PXDBFieldAttribute and PXEntityAttribute without data type case
+					return TypesCompatibility.MissingTypeAnnotation;
+
+				case 1:
+					var dataTypeFromAttributes = distinctClrTypesFromDataTypeAttributes.FirstOrDefault();
+
+					if (dataTypeFromAttributes.Equals(property.PropertyTypeUnwrappedNullable, SymbolEqualityComparer.Default))
+						return TypesCompatibility.CompatibleTypes;
+						
+					return TypesCompatibility.IncompatibleTypes;
+
+				default:
+					// Data type attributes correspond to more than one CLR type 
+					return TypesCompatibility.IncompatibleTypes;
+			}
+		}
 	}
 }

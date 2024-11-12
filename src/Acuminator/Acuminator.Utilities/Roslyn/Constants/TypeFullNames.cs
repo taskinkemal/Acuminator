@@ -46,6 +46,16 @@
 		internal const string PXGuidAttribute = "PX.Data.PXGuidAttribute";
 		internal const string PXBoolAttribute = "PX.Data.PXBoolAttribute";
 		internal const string PXVariantAttribute = "PX.Data.PXVariantAttribute";
+		internal const string PXDBBaseScreenIDAttribute = "PX.Data.PXDBBaseScreenIDAttribute";
+		internal const string PXDBWeblinkAttribute = "PX.Data.PXDBWeblinkAttribute";
+		internal const string PXDBEmailAttribute = "PX.Data.PXDBEmailAttribute";
+		internal const string PersonDisplayNameAttribute = "PX.SM.PersonDisplayNameAttribute";
+		internal const string RMColorAttribute = "PX.CS.RMColorAttribute";
+		internal const string RMFontNameAttribute = "PX.CS.RMFontNameAttribute";
+		internal const string ContactDisplayNameAttribute = "PX.Objects.CR.ContactDisplayNameAttribute";
+		internal const string PXAttributeValueAttribute = "PX.Objects.CS.PXAttributeValueAttribute";
+		internal const string CuryIDStringAttribute = "PX.Objects.CM.Extensions.CurrencyInfo.CuryIDStringAttribute";
+		internal const string TaxIDAttribute = "PX.Objects.TX.TaxIDAttribute";
 
 
 		internal const string PXDBFieldAttribute = "PX.Data.PXDBFieldAttribute";
