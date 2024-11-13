@@ -26,8 +26,9 @@
     * [Parametrized Diagnostic Messages](#parametrized-diagnostic-messages)
     * [Test Methods](#test-methods)
     * [Async Anonymous Delegates](#async-anonymous-delegates)
-    * [Value Tuples](#value-tuples)
+    * [Value Tuples (Obsolete)](#value-tuples-obsolete)
     * [Debugging Hints](#debugging-hints)
+    * [Checking Acumatica DLL Version](#checking-acumatica-dll-version)
 
 ## Code Style
 
@@ -443,7 +444,7 @@ https://docs.microsoft.com/ru-ru/dotnet/framework/configure-apps/file-schema/run
 
 Overall, the passing of asynchronous methods to `analyzer.RegisterXXX `is an unwanted scenario that should be avoided at all costs.
 
-### Value Tuples
+### Value Tuples (Obsolete)
 
 There is an issue with value tuples in Visual Studio 2017. There is a dependency conflict between some packages depending on different versions of `System.ValueTuple` which proved to be impossible to fix.
 The issue appear as a `MissingMethod` exception being thrown on attempt to call public API method with signature containing value tuples if the caller and callee are declared in different assemblies.
@@ -464,3 +465,12 @@ You need to do one of the following:
 * Perform a multiprocess debugging by attaching your debugger to a second process with loaded Roslyn analyzers. The name of the process should look like the following: *ServiceHub.RoslynCodeAnalysisService.exe*.
 
 The first option is much simpler but you have to check that your diagnostic works correctly when the out of process analysis is enabled for Visual Studio.
+
+### Checking Acumatica DLL Version
+
+You can find flags indicating the version of analyzed Acumatica DLLs in the `Acuminator.Utilities.Roslyn.Semantic.PXContext` type.
+
+If you need to add a new flag indicating the version of Acumatica DLLs, you should add it to the `PXContext` class. The check for Acumatica version has to be based on the presense of some new API
+added in the specific version of Acumatica DLLs. We can't rely on standard .Net assembly version attributes because Acumatica assemblies don't have them or they are not updated properly.
+
+*Remember! Only public API can be used to check the version of Acumatica DLLs because Roslyn does not load private and internal metadata of the external dependencies of the analyzed code.*

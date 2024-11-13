@@ -18,7 +18,7 @@ namespace Acuminator.Utilities.Roslyn.Semantic
 		public bool IsAcumatica2018R2_OrGreater { get; }
 		public bool IsAcumatica2019R1_OrGreater { get; }
 
-		public bool IsAcumatica2023R1_OrGreater => PXCache.RowSelectingWhileReading != null;
+		public bool IsAcumatica2023R1_OrGreater { get; }
 
 		public bool IsAcumatica2024R1_OrGreater => PXBqlTable != null;
 
@@ -167,6 +167,9 @@ namespace Acuminator.Utilities.Roslyn.Semantic
 
 			IsAcumatica2018R2_OrGreater = PXSelectBase2018R2NewType != null;
 			IsAcumatica2019R1_OrGreater = IImplementType != null;
+
+			const string archiveProcessGraphName = "PX.Data.Archiving.ArchiveProcess";
+			IsAcumatica2023R1_OrGreater = compilation.GetTypeByMetadataName(archiveProcessGraphName) != null;
 		}
 
 		private ImmutableHashSet<IMethodSymbol> GetUiPresentationLogicMethods()
