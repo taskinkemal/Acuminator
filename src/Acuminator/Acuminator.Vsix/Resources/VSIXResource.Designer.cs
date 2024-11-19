@@ -800,7 +800,7 @@ namespace Acuminator.Vsix {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not display the diagnostics specified in the suppression file. If set to false, Acuminator ignores the suppression file and displays all found diagnostics..
+        ///   Looks up a localized string similar to Enables Acuminator diagnostics suppression with suppression comments and Acuminator suppression files. If this setting is set to false, Acuminator will ignore suppression comments in the source code and Acuminator suppression files and display all found diagnostics..
         /// </summary>
         public static string Setting_CodeAnalysis_SuppressionMechanismEnabled_Description {
             get {
@@ -809,7 +809,7 @@ namespace Acuminator.Vsix {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Suppress selected diagnostics.
+        ///   Looks up a localized string similar to Enable Acuminator diagnostics suppression.
         /// </summary>
         public static string Setting_CodeAnalysis_SuppressionMechanismEnabled_Title {
             get {
