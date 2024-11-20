@@ -394,6 +394,15 @@ namespace Acuminator.Vsix {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This graph extension adds a processing view.
+        /// </summary>
+        public static string CodeMap_ExtraInfo_ProcessingGraphExtensionIconTooltip {
+            get {
+                return ResourceManager.GetString("CodeMap_ExtraInfo_ProcessingGraphExtensionIconTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This is a processing graph.
         /// </summary>
         public static string CodeMap_ExtraInfo_ProcessingGraphIconTooltip {
