@@ -325,7 +325,7 @@
     <value>Loading the Acuminator package</value>
   </data>
   <data name="Setting_BannedAPI_AllowedApiFilePath_Description" xml:space="preserve">
-    <value>A path to the file with allowed APIs that will not be reported by Acuminator even if their containing namespaces or types are contained in the "Banned API File" as banned.
+    <value>A path to the file with allowed APIs that will not be reported by Acuminator even if their containing namespaces or types are listed in the "Banned API File" as banned.
 This option should be used together with the "Banned API File" setting.</value>
   </data>
   <data name="Setting_BannedAPI_AllowedApiFilePath_Title" xml:space="preserve">

@@ -682,7 +682,7 @@ namespace Acuminator.Vsix {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A path to the file with allowed APIs that will not be reported by Acuminator even if their containing namespaces or types are contained in the &quot;Banned API File&quot; as banned.
+        ///   Looks up a localized string similar to A path to the file with allowed APIs that will not be reported by Acuminator even if their containing namespaces or types are listed in the &quot;Banned API File&quot; as banned.
         ///This option should be used together with the &quot;Banned API File&quot; setting..
         /// </summary>
         public static string Setting_BannedAPI_AllowedApiFilePath_Description {
