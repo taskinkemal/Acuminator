@@ -24,8 +24,11 @@ namespace Acuminator.Vsix.ToolWindows.CodeMap
 				Icon.DacKeyField 								=> VSIXResource.CodeMap_ExtraInfo_DacKeyIconTooltip,
 				Icon.Settings 									=> VSIXResource.CodeMap_ExtraInfo_PXSetupViewIconTooltip,
 				Icon.Filter 									=> VSIXResource.CodeMap_ExtraInfo_PXFilterViewIconTooltip,
-				Icon.Processing when node is ViewNodeViewModel 	=> VSIXResource.CodeMap_ExtraInfo_ProcessingViewIconTooltip,
-				Icon.Processing when node is GraphNodeViewModel => VSIXResource.CodeMap_ExtraInfo_ProcessingGraphIconTooltip,
+				Icon.Processing when node is ViewNodeViewModel	=> VSIXResource.CodeMap_ExtraInfo_ProcessingViewIconTooltip,
+				Icon.Processing 
+				when node is GraphNodeViewModel graphVM			=> graphVM.IsGraph 
+																	? VSIXResource.CodeMap_ExtraInfo_ProcessingGraphIconTooltip
+																	: VSIXResource.CodeMap_ExtraInfo_ProcessingGraphExtensionIconTooltip,
 				Icon.ProjectionDac 								=> VSIXResource.CodeMap_ExtraInfo_ProjectionDacIndicatorTooltip,
 				Icon.ProjectionAttribute 						=> VSIXResource.CodeMap_Icon_ProjectionAttributeTooltip,
 				_ 												=> null

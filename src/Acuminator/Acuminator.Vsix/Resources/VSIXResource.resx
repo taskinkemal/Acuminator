@@ -240,6 +240,9 @@
   <data name="CodeMap_ExtraInfo_PXSetupViewIconTooltip" xml:space="preserve">
     <value>This view is PXSetup or derived from it</value>
   </data>
+  <data name="CodeMap_ExtraInfo_ProcessingGraphExtensionIconTooltip" xml:space="preserve">
+    <value>This graph extension adds a processing view</value>
+  </data>
   <data name="CodeMap_ExtraInfo_ProcessingGraphIconTooltip" xml:space="preserve">
     <value>This is a processing graph</value>
   </data>
@@ -321,6 +324,13 @@
   <data name="PackageLoad_WaitMessage" xml:space="preserve">
     <value>Loading the Acuminator package</value>
   </data>
+  <data name="Setting_BannedAPI_AllowedApiFilePath_Description" xml:space="preserve">
+    <value>A path to the file with allowed APIs that will not be reported by Acuminator even if their containing namespaces or types are listed in the "Banned API File" as banned.
+This option should be used together with the "Banned API File" setting.</value>
+  </data>
+  <data name="Setting_BannedAPI_AllowedApiFilePath_Title" xml:space="preserve">
+    <value>Allowed APIs File</value>
+  </data>
   <data name="Setting_BannedAPI_BannedApiAnalysisEnabled_Description" xml:space="preserve">
     <value>Enable Acuminator PX1099 diagnostic which reports calls to API that should not be used with Acumatica Framework. </value>
   </data>
@@ -332,13 +342,6 @@
   </data>
   <data name="Setting_BannedAPI_BannedApiFilePath_Title" xml:space="preserve">
     <value>Banned APIs File</value>
-  </data>
-  <data name="Setting_BannedAPI_AllowedApiFilePath_Description" xml:space="preserve">
-    <value>A path to the file with allowed APIs that will not be reported by Acuminator even if their containing namespaces or types are contained in the "Banned API File" as banned.
-This option should be used together with the "Banned API File" setting.</value>
-  </data>
-  <data name="Setting_BannedAPI_AllowedApiFilePath_Title" xml:space="preserve">
-    <value>Allowed APIs File</value>
   </data>
   <data name="Setting_CodeAnalysis_IsvSpecificAnalyzersEnabled_Description" xml:space="preserve">
     <value>Display the diagnostics that are necessary only for ISV Solution Certification. For non-ISV solutions, these diagnostics are informational.</value>
