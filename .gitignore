@@ -259,3 +259,5 @@ C:\Repos\Analyzer\PX.Analyzers\PX.Analyzers.Test\Sources\BQL\GoodBQL - Copy.cs
 /src/Acuminator/Acuminator.Tests/ExternalRunner/src/Acuminator Libs/Acuminator.Analyzers.pdb
 /src/Acuminator/Acuminator.Tests/ExternalRunner/src/Acuminator Libs/Acuminator.Utilities.dll
 /src/Acuminator/Acuminator.Tests/ExternalRunner/src/Acuminator Libs/Acuminator.Utilities.pdb
+/src/Acuminator/Acuminator.Tests/ExternalDependency/Dll/ExternalDependency.dll
+/src/Acuminator/Acuminator.Tests/ExternalDependency/Dll/ExternalDependency.pdb
