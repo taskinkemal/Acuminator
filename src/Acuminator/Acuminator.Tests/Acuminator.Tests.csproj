@@ -1021,7 +1021,10 @@
     <Folder Include="Tests\Refactorings\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="BuildExternalExecutor" AfterTargets="PostBuildEvent">
+  <Target Name="BuildExternalDependency" AfterTargets="PreBuildEvent">
+    <MSBuild Projects="$(ProjectDir)ExternalDependency\src\ExternalDependency.csproj" Properties="Configuration=Debug" />
+  </Target>
+  <Target Name="BuildExternalExecutor" AfterTargets="PreBuildEvent">
     <MSBuild Projects="$(ProjectDir)ExternalRunner\src\ExternalRunner.csproj" Properties="Configuration=Debug" />
   </Target>
 </Project>
