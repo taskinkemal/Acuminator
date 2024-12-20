@@ -800,13 +800,13 @@ Reason: {2}</value>
     <value>Suppress the {0} diagnostic with Acuminator in a comment</value>
   </data>
   <data name="PX1078MessageFormat_TypesOfDacFieldAndReferencedFieldMismatch" xml:space="preserve">
-    <value>DAC field "{0}" and referenced field "{1}" have different types. Expected type for the DAC field is {2}.</value>
+    <value>The "{0}" DAC field and the "{1}" referenced field have different types. The expected type for the DAC field is {2}.</value>
   </data>
   <data name="PX1078MessageFormat_TypesOfDacFieldAndReferencedFieldHaveDifferentSize" xml:space="preserve">
-    <value>DAC field "{0}" and referenced field "{1}" have different length specified in data type attribute. Expected length for DAC field is {2}.</value>
+    <value>The "{0}" DAC field and the "{1}" referenced field have different sizes specified in the data type attribute. The expected size of the DAC field is {2}.</value>
   </data>
   <data name="PX1078Title_TypesOfDacFieldAndReferencedFieldHaveDifferentSize" xml:space="preserve">
-    <value>DAC field and referenced field have different size</value>
+    <value>DAC field and referenced field have different sizes</value>
   </data>
   <data name="PX1078Title_TypesOfDacFieldAndReferencedFieldMismatch" xml:space="preserve">
     <value>DAC field and referenced field have different types</value>
