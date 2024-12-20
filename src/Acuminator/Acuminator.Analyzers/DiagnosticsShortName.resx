@@ -423,4 +423,10 @@
   <data name="PX1099" xml:space="preserve">
     <value>UsageOfForbiddenApi</value>
   </data>
+  <data name="PX1078_DifferentType" xml:space="preserve">
+    <value>TypesOfDacFieldAndReferencedFieldMismatch</value>
+  </data>
+  <data name="PX1078_DifferentTypeSize" xml:space="preserve">
+    <value>TypesOfDacFieldAndReferencedFieldHaveDifferentSize</value>
+  </data>
 </root>

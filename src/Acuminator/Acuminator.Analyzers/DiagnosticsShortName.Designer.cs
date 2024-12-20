@@ -808,6 +808,24 @@ namespace Acuminator.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TypesOfDacFieldAndReferencedFieldMismatch.
+        /// </summary>
+        public static string PX1078_DifferentType {
+            get {
+                return ResourceManager.GetString("PX1078_DifferentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TypesOfDacFieldAndReferencedFieldHaveDifferentSize.
+        /// </summary>
+        public static string PX1078_DifferentTypeSize {
+            get {
+                return ResourceManager.GetString("PX1078_DifferentTypeSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to LongRunOperationInDataViewDelegate.
         /// </summary>
         public static string PX1080 {

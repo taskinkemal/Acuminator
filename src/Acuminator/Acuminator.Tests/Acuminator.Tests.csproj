@@ -99,6 +99,9 @@
     <EmbeddedResource Include="Tests\StaticAnalysis\BannedApi\Sources\CallsToApisForbiddenToIsv.cs" />
     <EmbeddedResource Include="Tests\StaticAnalysis\BannedApi\Sources\CallsToMathRoundAPIs.cs" />
     <EmbeddedResource Include="Tests\StaticAnalysis\BannedApi\Sources\CallsToAsyncAPIs.cs" />
+    <Compile Include="Tests\StaticAnalysis\DacFieldAndReferencedFieldMismatch\DacFieldAndReferencedFieldMismatchTests.cs" />
+    <EmbeddedResource Include="Tests\StaticAnalysis\DacFieldAndReferencedFieldMismatch\Sources\MismatchedLengthDac.cs" />
+    <EmbeddedResource Include="Tests\StaticAnalysis\DacFieldAndReferencedFieldMismatch\Sources\MismatchedTypeDac.cs" />
     <Compile Include="Tests\StaticAnalysis\ForbidPrivateEventHandlers\ForbidPrivateEventHandlersFixerTests.cs" />
     <Compile Include="Tests\StaticAnalysis\ForbidPrivateEventHandlers\ForbidPrivateEventHandlersTests.cs" />
     <EmbeddedResource Include="Tests\StaticAnalysis\ForbidPrivateEventHandlers\Sources\PrivateModifier.cs" />

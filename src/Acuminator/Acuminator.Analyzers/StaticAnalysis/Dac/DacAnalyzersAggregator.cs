@@ -5,6 +5,7 @@ using Acuminator.Analyzers.StaticAnalysis.AnalyzersAggregator;
 using Acuminator.Analyzers.StaticAnalysis.AutoNumberAttribute;
 using Acuminator.Analyzers.StaticAnalysis.ConstructorInDac;
 using Acuminator.Analyzers.StaticAnalysis.DacExtensionDefaultAttribute;
+using Acuminator.Analyzers.StaticAnalysis.DacFieldAndReferencedFieldMismatch;
 using Acuminator.Analyzers.StaticAnalysis.DacKeyFieldDeclaration;
 using Acuminator.Analyzers.StaticAnalysis.DacNonAbstractFieldType;
 using Acuminator.Analyzers.StaticAnalysis.DacPropertyAttributes;
@@ -62,7 +63,8 @@ namespace Acuminator.Analyzers.StaticAnalysis.Dac
 			new MissingTypeListAttributeAnalyzer(),
 			new PXGraphUsageInDacAnalyzer(),
 			new NoIsActiveMethodForExtensionAnalyzer(),
-			new PXGraphCreationInGraphInWrongPlacesDacAnalyzer())
+			new PXGraphCreationInGraphInWrongPlacesDacAnalyzer(),
+			new DacFieldAndReferencedFieldMismatchAnalyzer())
 		{
         }
 

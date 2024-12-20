@@ -425,6 +425,16 @@ namespace Acuminator.Analyzers.StaticAnalysis
 		public static DiagnosticDescriptor PX1077_EventHandlersShouldNotBeExplicitInterfaceImplementations { get; } =
 			Rule("PX1077", nameof(Resources.PX1077Title_ExplicitInterfaceImplementation).GetLocalized(), Category.Acuminator, DiagnosticSeverity.Error, DiagnosticsShortName.PX1077);
 
+		public static DiagnosticDescriptor PX1078_TypesOfDacFieldAndReferencedFieldMismatch { get; } =
+			Rule("PX1078", nameof(Resources.PX1078Title_TypesOfDacFieldAndReferencedFieldMismatch).GetLocalized(),
+				Category.Acuminator, DiagnosticSeverity.Error, DiagnosticsShortName.PX1078_DifferentType,
+				messageFormat: nameof(Resources.PX1078MessageFormat_TypesOfDacFieldAndReferencedFieldMismatch).GetLocalized());
+
+		public static DiagnosticDescriptor PX1078_TypesOfDacFieldAndReferencedFieldHaveDifferentSize { get; } =
+			Rule("PX1078", nameof(Resources.PX1078Title_TypesOfDacFieldAndReferencedFieldHaveDifferentSize).GetLocalized(),
+				Category.Acuminator, DiagnosticSeverity.Error, DiagnosticsShortName.PX1078_DifferentTypeSize,
+				messageFormat: nameof(Resources.PX1078MessageFormat_TypesOfDacFieldAndReferencedFieldHaveDifferentSize).GetLocalized());
+
 		public static DiagnosticDescriptor PX1080_DataViewDelegateLongOperationStart { get; } =
 			Rule("PX1080", nameof(Resources.PX1080Title).GetLocalized(), Category.Acuminator, DiagnosticSeverity.Error, DiagnosticsShortName.PX1080);
 

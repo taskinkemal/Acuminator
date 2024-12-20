@@ -7,13 +7,13 @@ using Acuminator.Analyzers.StaticAnalysis.Dac;
 using Acuminator.Utilities.Common;
 using Acuminator.Utilities.DiagnosticSuppression;
 using Acuminator.Utilities.Roslyn.PXFieldAttributes;
+using Acuminator.Utilities.Roslyn.PXFieldAttributes.Enum;
 using Acuminator.Utilities.Roslyn.Semantic;
 using Acuminator.Utilities.Roslyn.Semantic.Attribute;
 using Acuminator.Utilities.Roslyn.Semantic.Dac;
 using Acuminator.Utilities.Roslyn.Syntax;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Acuminator.Analyzers.StaticAnalysis.DacPropertyAttributes
@@ -187,7 +187,7 @@ namespace Acuminator.Analyzers.StaticAnalysis.DacPropertyAttributes
 				return;
 
 			var (typeAttributesOnDacProperty, typeAttributesWithDifferentDataTypesOnAggregator, hasNonNullDataType) = 
-				FilterTypeAttributes(attributesWithFieldTypeMetadata);
+				attributesWithFieldTypeMetadata.FilterTypeAttributes();
 
 			if (typeAttributesOnDacProperty.IsNullOrEmpty() || !hasNonNullDataType)
 				return;
@@ -205,68 +205,24 @@ namespace Acuminator.Analyzers.StaticAnalysis.DacPropertyAttributes
 			} 
 			else if (typeAttributesWithDifferentDataTypesOnAggregator?.Count is null or 0)
 			{
-				DacFieldAttributeInfo dataTypeAttribute = typeAttributesOnDacProperty[0];
-				var dataTypeFromAttribute = dataTypeAttribute.AggregatedAttributeMetadata
-															 .Where(atrMetadata => atrMetadata.IsFieldAttribute && atrMetadata.DataType != null)
-															 .Select(atrMetadata => atrMetadata.DataType!)
-															 .Distinct<ITypeSymbol>(SymbolEqualityComparer.Default)
-															 .FirstOrDefault();
+				var compatibility = property.CheckCompatibility(typeAttributesOnDacProperty[0]);
 		
-				CheckAttributeAndPropertyTypesForCompatibility(property, dataTypeAttribute, dataTypeFromAttribute, pxContext, symbolContext);
+				CheckAttributeAndPropertyTypesForCompatibility(property, typeAttributesOnDacProperty[0], compatibility, 
+					pxContext, symbolContext);
 			}			
 		}
 
-		private static (List<DacFieldAttributeInfo>?, List<DacFieldAttributeInfo>?, bool HasNonNullDataType) FilterTypeAttributes(
-																								List<DacFieldAttributeInfo> attributesWithFieldTypeMetadata)
-		{
-			List<DacFieldAttributeInfo>? typeAttributesOnDacProperty = null;
-			List<DacFieldAttributeInfo>? typeAttributesWithDifferentDataTypesOnAggregator = null;
-			bool hasNonNullDataType = false;
-
-			foreach (var attribute in attributesWithFieldTypeMetadata)
-			{
-				var dataTypeAttributes = attribute.AggregatedAttributeMetadata
-												  .Where(atrMetadata => atrMetadata.IsFieldAttribute)
-												  .ToList();
-				if (dataTypeAttributes.Count == 0)
-					continue;
-
-				typeAttributesOnDacProperty ??= new List<DacFieldAttributeInfo>(capacity: 2);
-				typeAttributesOnDacProperty.Add(attribute);
-
-				if (dataTypeAttributes.Count == 1)
-				{
-					hasNonNullDataType = hasNonNullDataType || dataTypeAttributes[0].DataType != null;
-					continue;
-				}
-
-				int countOfDeclaredNonNullDataTypes = dataTypeAttributes.Where(atrMetadata => atrMetadata.DataType != null)
-																		.Select(atrMetadata => atrMetadata.DataType!)
-																		.Distinct<ITypeSymbol>(SymbolEqualityComparer.Default)
-																		.Count();
-				hasNonNullDataType = hasNonNullDataType || countOfDeclaredNonNullDataTypes > 0;
-
-				if (countOfDeclaredNonNullDataTypes > 1)
-				{
-					typeAttributesWithDifferentDataTypesOnAggregator ??= new List<DacFieldAttributeInfo>(capacity: 2);
-					typeAttributesWithDifferentDataTypesOnAggregator.Add(attribute);
-				}
-			}
-
-			return (typeAttributesOnDacProperty, typeAttributesWithDifferentDataTypesOnAggregator, hasNonNullDataType);
-		}
-
 		private static void CheckAttributeAndPropertyTypesForCompatibility(DacPropertyInfo property, DacFieldAttributeInfo dataTypeAttribute, 
-																		   ITypeSymbol? dataTypeFromAttribute, PXContext pxContext, 
+																		   TypesCompatibility compatibility, PXContext pxContext, 
 																		   SymbolAnalysisContext symbolContext)
 		{
-			if (dataTypeFromAttribute == null)             //PXDBFieldAttribute and PXEntityAttribute without data type case
+			if (compatibility == TypesCompatibility.MissingTypeAnnotation)
 			{
 				ReportIncompatibleTypesDiagnostics(property, dataTypeAttribute, symbolContext, pxContext, registerCodeFix: false);
 				return;
 			}
 
-			if (!dataTypeFromAttribute.Equals(property.PropertyTypeUnwrappedNullable, SymbolEqualityComparer.Default))
+			if (compatibility == TypesCompatibility.IncompatibleTypes)
 			{
 				ReportIncompatibleTypesDiagnostics(property, dataTypeAttribute, symbolContext, pxContext, registerCodeFix: true);
 			}
