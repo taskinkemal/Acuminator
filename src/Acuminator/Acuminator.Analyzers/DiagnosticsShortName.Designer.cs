@@ -19,7 +19,7 @@ namespace Acuminator.Analyzers {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class DiagnosticsShortName {
@@ -57,6 +57,15 @@ namespace Acuminator.Analyzers {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EventHandlersShouldBeProtectedVirtual.
+        /// </summary>
+        public static string HX2002 {
+            get {
+                return ResourceManager.GetString("HX2002", resourceCulture);
             }
         }
         
@@ -822,15 +831,6 @@ namespace Acuminator.Analyzers {
         public static string PX1076 {
             get {
                 return ResourceManager.GetString("PX1076", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to EventHandlersShouldBeProtectedVirtual.
-        /// </summary>
-        public static string PX1077 {
-            get {
-                return ResourceManager.GetString("PX1077", resourceCulture);
             }
         }
         

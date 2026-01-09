@@ -94,13 +94,6 @@ namespace Acuminator.Analyzers.StaticAnalysis.ForbidPrivateEventHandlers
 					Diagnostic.Create(Descriptors.PX1077_EventHandlersShouldNotBePrivate, location, properties),
 					pxContext.CodeAnalysisSettings);
 			}
-			else
-			{
-				var modifiersText = GetModifiersText(isPublic: targetAccessibility == Accessibility.Public, addVirtualModifier);
-				context.ReportDiagnosticWithSuppressionCheck(
-					Diagnostic.Create(Descriptors.PX1077_EventHandlersShouldBeProtectedVirtual, location, properties, modifiersText),
-					pxContext.CodeAnalysisSettings);
-			}
 		}
 
 		private static bool IsImplicitInterfaceImplementation(IMethodSymbol method, List<IMethodSymbol>? allInterfaceMethodsImplementations)

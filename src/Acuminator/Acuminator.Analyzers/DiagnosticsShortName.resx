@@ -372,7 +372,7 @@
   <data name="PX1076" xml:space="preserve">
     <value>CallToInternalApi</value>
   </data>
-  <data name="PX1077" xml:space="preserve">
+  <data name="HX2002" xml:space="preserve">
     <value>EventHandlersShouldBeProtectedVirtual</value>
   </data>
   <data name="PX1078_DifferentType" xml:space="preserve">

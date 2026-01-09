@@ -1,30 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Title>Acuminator Analyzers</Title>
-    <AssemblyTitle>Acuminator.Analyzers</AssemblyTitle>
+    <PackageId>Haufe.X360.Acuminator.Analyzers</PackageId>
+    <Title>Haufe Acuminator Analyzers (Fork)</Title>
+    <AssemblyTitle>Haufe.X360.Acuminator.Analyzers</AssemblyTitle>
+    <AssemblyName>Haufe.X360.Acuminator.Analyzers</AssemblyName>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>4.0.0</Version>
+	<Version>4.0.0-haufe.9</Version>
     <LangVersion>13.0</LangVersion>
-    <SignAssembly>False</SignAssembly>
-    <Company>Acumatica, Inc.</Company>
-    <Description>The static analyzers for Acumatica</Description>
-    <Authors>$(Company)</Authors> 
-    <Copyright>Copyright © 2017-$([System.DateTime]::Now.Year) $(Company)</Copyright>
+	<SignAssembly>False</SignAssembly>
+    <Company>Haufe Group</Company>
+    <Description>Fork of Acuminator static analyzers, customized for Haufe Group internal use. Based on Acumatica Acuminator version 4.0.0.</Description>
+	<Authors>$(Company) (Based on Acumatica Acuminator)</Authors>
+    <Copyright>Copyright © $([System.DateTime]::Now.Year) $(Company). Based on Acumatica Acuminator.</Copyright>
     <NeutralLanguage>en</NeutralLanguage>
-    <RestorePackagesPath>../../packages</RestorePackagesPath>
-    <Nullable>enable</Nullable>
-    <WarningsAsErrors>Nullable</WarningsAsErrors>
+	<RestorePackagesPath>../../packages</RestorePackagesPath>
+	<Nullable>enable</Nullable>
+	<WarningsAsErrors>Nullable</WarningsAsErrors>
+	<IncludeBuildOutput>false</IncludeBuildOutput>
+	<DevelopmentDependency>true</DevelopmentDependency>
+	<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
   </PropertyGroup>
   <PropertyGroup>
-    <PackageLicenseUrl>https://github.com/Acumatica/Acuminator/blob/dev/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/Acumatica/Acuminator</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Acumatica/Acuminator</RepositoryUrl>
-    <PackageReleaseNotes>https://github.com/Acumatica/Acuminator/blob/dev/docs/ReleaseNotes.md</PackageReleaseNotes>
-    <PackageIcon>packageIcon.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>acuminator</PackageTags>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <PackageProjectUrl>https://github.com/taskinkemal/Acuminator</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/taskinkemal/Acuminator</RepositoryUrl>
+	  <PackageReleaseNotes>Haufe fork of Acuminator 4.0.0.</PackageReleaseNotes>
+	  <PackageIcon>packageIcon.png</PackageIcon>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <PackageTags>acuminator;haufe;analyzer;internal</PackageTags>
+	  <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <IncludeSymbols>False</IncludeSymbols>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
@@ -50,13 +53,13 @@
       <InternalsVisibleTo Include="Acuminator.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.11.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" PrivateAssets="all" />
     <PackageReference Include="Nullable" Version="1.3.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -65,12 +68,15 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-    <PackageReference Include="System.Memory" Version="4.6.3" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="System.Memory" Version="4.6.3" PrivateAssets="all" />
     <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Acuminator.Utilities\Acuminator.Utilities.csproj" />
+	  <ProjectReference Include="..\Acuminator.Utilities\Acuminator.Utilities.csproj">
+		  <PrivateAssets>all</PrivateAssets>
+		  <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+	  </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="DiagnosticsDefaultJustification.Designer.cs">
@@ -119,11 +125,16 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-	<Target Name="CopyAcuminatorDlls" AfterTargets="PostBuildEvent">    
+  <!-- Package both analyzer DLLs in the correct location -->
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\Acuminator.Utilities.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+	<!--<Target Name="CopyAcuminatorDlls" AfterTargets="PostBuildEvent">    
 		<ItemGroup>
 			<AcuminatorDlls Include="$(TargetDir)$(AssemblyName).dll;$(TargetDir)Acuminator.Utilities.dll" />
 		</ItemGroup>
 
 		<Copy SourceFiles="@(AcuminatorDlls)" SkipUnchangedFiles="True" DestinationFolder="$(SolutionDir)Acuminator\Acuminator.Tests\ExternalRunner\src\Acuminator Libs\" />
-	</Target>
+	</Target>-->
 </Project>
