@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <PackageId>Haufe.X360.Acuminator.Analyzers</PackageId>
+    <PackageId>Acuminator.Analyzers</PackageId>
     <Title>Haufe Acuminator Analyzers (Fork)</Title>
     <AssemblyTitle>Haufe.X360.Acuminator.Analyzers</AssemblyTitle>
     <AssemblyName>Haufe.X360.Acuminator.Analyzers</AssemblyName>
     <TargetFramework>netstandard2.0</TargetFramework>
-	<Version>4.0.0-haufe.9</Version>
+	<Version>4.0.0-haufe.1</Version>
     <LangVersion>13.0</LangVersion>
 	<SignAssembly>False</SignAssembly>
     <Company>Haufe Group</Company>
