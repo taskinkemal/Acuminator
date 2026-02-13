@@ -31,8 +31,16 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 		protected override CodeFixProvider GetCSharpCodeFixProvider() => new AddOrReplaceOrRenameBaseDelegateParameterFix();
 
 		[Theory]
+		[EmbeddedFileData(@"BaseDelegateParameter\WithoutParameter\PXOverrideRefAndOutParametersWithoutBaseDelegateParameter.cs")]
+		public Task PXOverrides_WithRefAndOutParameters_Without_BaseDelegateParameter(string source) =>
+			VerifyCSharpDiagnosticAsync(source,
+				Descriptors.PX1079_PXOverrideWithoutDelegateParameter.CreateFor(15, 15),
+				Descriptors.PX1079_PXOverrideWithoutDelegateParameter.CreateFor(21, 15),
+				Descriptors.PX1079_PXOverrideWithoutDelegateParameter.CreateFor(27, 28));
+
+		[Theory]
 		[EmbeddedFileData(@"BaseDelegateParameter\WithoutParameter\PXOverrideWithoutBaseDelegateParameter.cs")]
-		public Task PXOverrides_Without_BaseDelegate_Parameter(string source) =>
+		public Task PXOverrides_Without_BaseDelegateParameter(string source) =>
 			VerifyCSharpDiagnosticAsync(source,
 				Descriptors.PX1079_PXOverrideWithoutDelegateParameter.CreateFor(12, 16),
 				Descriptors.PX1079_PXOverrideWithoutDelegateParameter.CreateFor(15, 15),
@@ -46,13 +54,20 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 
 		[Theory]
 		[EmbeddedFileData(@"BaseDelegateParameter\WithoutParameter\PXOverrideWithoutBaseDelegateParameter_Expected.cs")]
-		public Task PXOverrides_Without_BaseDelegate_Parameter_AfterCodeFix(string source) =>
+		public Task PXOverrides_Without_BaseDelegateParameter_AfterCodeFix(string source) =>
 			VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]
 		[EmbeddedFileData(@"BaseDelegateParameter\WithoutParameter\PXOverrideWithoutBaseDelegateParameter.cs",
 						  @"BaseDelegateParameter\WithoutParameter\PXOverrideWithoutBaseDelegateParameter_Expected.cs")]
-		public Task PXOverrides_Without_BaseDelegate_Parameter_CodeFix(string actual, string expected) => 
+		public Task PXOverrides_Without_BaseDelegateParameter_CodeFix(string actual, string expected) => 
+			VerifyCSharpFixAsync(actual, expected);
+
+		// This test checks that code fix in fact is not registered and applied for the cases when method signature has non-trivial ref kinds.
+		[Theory]
+		[EmbeddedFileData(@"BaseDelegateParameter\WithoutParameter\PXOverrideRefAndOutParametersWithoutBaseDelegateParameter.cs",
+						  @"BaseDelegateParameter\WithoutParameter\PXOverrideRefAndOutParametersWithoutBaseDelegateParameter_Expected.cs")]
+		public Task PXOverrides_WithRefAndOutParameters_Without_BaseDelegateParameter_CodeFix(string actual, string expected) =>
 			VerifyCSharpFixAsync(actual, expected);
 
 		private sealed class PXOverrideAnalyzerForNoDelegateParameterTests : PXOverrideAnalyzer

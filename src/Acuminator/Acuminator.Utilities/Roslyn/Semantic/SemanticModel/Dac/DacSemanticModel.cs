@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 
 using Acuminator.Utilities.Common;
+using Acuminator.Utilities.Roslyn.Constants;
 using Acuminator.Utilities.Roslyn.PXFieldAttributes;
 using Acuminator.Utilities.Roslyn.Semantic.Attribute;
 using Acuminator.Utilities.Roslyn.Semantic.Shared;
@@ -104,6 +105,11 @@ namespace Acuminator.Utilities.Roslyn.Semantic.Dac
 		public ImmutableArray<DacAttributeInfo> Attributes { get; }
 
 		/// <summary>
+		/// The PXDBInterceptorAttribute attributes declared on a DAC or a DAC extension.
+		/// </summary>
+		public ImmutableArray<DacAttributeInfo> DBInterceptorAttributes { get; }
+
+		/// <summary>
 		/// The PXAccumulator-derived attribute if there is any declared on a DAC.
 		/// </summary>
 		public DacAttributeInfo? AccumulatorAttribute { get; }
@@ -129,16 +135,17 @@ namespace Acuminator.Utilities.Roslyn.Semantic.Dac
 			_cancellation = cancellation;
 			IsMappedCacheExtension = Symbol.InheritsFromOrEquals(PXContext.PXMappedCacheExtensionType);
 
-			Attributes		  = GetDacAttributes();
-			BqlFieldsByNames  = GetDacBqlFields();
-			PropertiesByNames = GetDacProperties(BqlFieldsByNames);
-			DacFieldsByNames  = DacFieldsCollector.CollectDacFieldsFromDacPropertiesAndBqlFields(DacOrDacExtInfo, PXContext,
-																								 BqlFieldsByNames, PropertiesByNames);
+			Attributes		  		= GetDacAttributes();
+			DBInterceptorAttributes = Attributes.Where(attr => attr.IsDbInterceptorAttribute).ToImmutableArray();
+			BqlFieldsByNames  		= GetDacBqlFields();
+			PropertiesByNames 		= GetDacProperties(BqlFieldsByNames);
+			DacFieldsByNames  		= DacFieldsCollector.CollectDacFieldsFromDacPropertiesAndBqlFields(DacOrDacExtInfo, PXContext,
+																									   BqlFieldsByNames, PropertiesByNames);
 			IsActiveMethodInfo = GetIsActiveMethodInfo();
 
-			IsFullyUnbound  = DacFieldPropertiesWithAcumaticaAttributes.All(p => p.EffectiveDbBoundness is DbBoundnessType.Unbound or DbBoundnessType.NotDefined);
 			IsProjectionDac = CheckIfDacIsProjection();
 			AccumulatorAttribute = GetPXAccumulatorAttribute();
+			IsFullyUnbound = IsFullyUnboundDac();
 		}
 
 		/// <summary>
@@ -238,18 +245,62 @@ namespace Acuminator.Utilities.Roslyn.Semantic.Dac
 
 		protected bool CheckIfDacIsProjection()
 		{
-			if (DacType != DacType.Dac || Attributes.IsDefaultOrEmpty)
+			if (DacType != DacType.Dac || DBInterceptorAttributes.IsDefaultOrEmpty)
 				return false;
 
-			return Attributes.Any(attrInfo => attrInfo.IsPXProjection);
+			return DBInterceptorAttributes.Any(attrInfo => attrInfo.IsPXProjection);
 		}
 
 		protected DacAttributeInfo? GetPXAccumulatorAttribute()
 		{
-			if (DacType != DacType.Dac || Attributes.IsDefaultOrEmpty)
+			if (DacType != DacType.Dac || DBInterceptorAttributes.IsDefaultOrEmpty)
 				return null;
 
-			return Attributes.FirstOrDefault(attr => attr.IsPXAccumulatorAttribute);
+			return DBInterceptorAttributes.FirstOrDefault(attr => attr.IsPXAccumulatorAttribute);
+		}
+
+		protected bool IsFullyUnboundDac()
+		{
+			if (DacFieldsByNames.Count == 0)
+				return true;
+
+			// Heuristic - DACs with PXDBInterceptorAttribute should be DB bound.
+			if (!DBInterceptorAttributes.IsDefaultOrEmpty)
+				return false;
+
+			if (!Attributes.IsDefaultOrEmpty)
+			{
+				var pxVirtualAttribute = PXContext.AttributeTypes.PXVirtualAttribute;
+
+				if (Attributes.Any(aInfo => pxVirtualAttribute.Equals(aInfo.AttributeType, SymbolEqualityComparer.Default)))
+					return true;
+			}
+
+			int unboundFieldsCount = 0;
+			int boundFieldsCount = 0;
+
+			foreach (DacPropertyInfo property in DacFieldPropertiesWithAcumaticaAttributes)
+			{
+				if (property.EffectiveDbBoundness is DbBoundnessType.Unbound or DbBoundnessType.NotDefined)
+					unboundFieldsCount++;
+				else
+					boundFieldsCount++;
+			}
+
+			switch (boundFieldsCount)
+			{
+				case 0:
+					return true;
+				case 1:
+					// Heuristic for NoteID - if NoteID is the only bound field and there is more than one field, then consider the DAC as fully unbound.
+					// This is required because there is no good way to configure an unbound NoteID field.
+					if (unboundFieldsCount == 0 || !PropertiesByNames.TryGetValue(DacFieldNames.System.NoteID, out var noteIdProperty))
+						return false;
+
+					return noteIdProperty.EffectiveDbBoundness == DbBoundnessType.DbBound;
+				default:
+					return false;
+			}
 		}
 	}
 }

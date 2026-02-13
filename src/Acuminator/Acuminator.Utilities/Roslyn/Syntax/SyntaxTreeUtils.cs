@@ -1,8 +1,10 @@
-﻿#nullable enable
-
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+
 using Acuminator.Utilities.Common;
+
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Acuminator.Utilities.Roslyn.Syntax
 {
@@ -184,6 +186,29 @@ namespace Acuminator.Utilities.Roslyn.Syntax
 			}
 
 			return currentX;
+		}
+
+		/// <summary>
+		/// Get the syntax nodes representing the namespaces containing the <paramref name="node"/>.
+		/// </summary>
+		/// <param name="node">The node to act on.</param>
+		/// <returns/>
+		public static IEnumerable<SyntaxNode> GetContainingNamespaces(this SyntaxNode node) =>
+			GetContainingNamespacesImpl(node.CheckIfNull(), includeThis: false);
+
+		private static IEnumerable<SyntaxNode> GetContainingNamespacesImpl(SyntaxNode node, bool includeThis)
+		{
+			var currentNode = includeThis
+				? node
+				: node.Parent;
+			
+			while (currentNode != null)
+			{
+				if (currentNode is NamespaceDeclarationSyntax || currentNode.RawKind == SharedConstants.FileScopedNamespaceDeclarationKind)
+					yield return currentNode;
+
+				currentNode = currentNode.Parent;
+			}
 		}
 	}
 }

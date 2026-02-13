@@ -1,16 +1,18 @@
 ﻿using System;
 
 using PX.Data;
+using PX.Data.BQL;
 
 namespace PX.Analyzers.Test.Sources
 {
+	/// <exclude/>
 	// Acuminator disable once PX1016 ExtensionDoesNotDeclareIsActiveMethod extension should be constantly active
 	[PXHidden]
-	public sealed class DacExtension : PXCacheExtension<BaseDac>
+	public sealed class DacExtension : PXCacheExtension<BaseDac>        // PX1065 for ShipmentNbr should not be reported here because it is not declared in the extension
 	{
 		[PXString]
 		[PXUIField(DisplayName = "Status")]
-		public string Status { get; set; }
+		public string? Status { get; set; }
 		#region Selected
 		public abstract class selected : PX.Data.BQL.BqlBool.Field<selected> { }
 
@@ -22,8 +24,20 @@ namespace PX.Analyzers.Test.Sources
 			set;
 		}
 		#endregion
+		#region Amount
+		public abstract class amount : PX.Data.BQL.BqlDecimal.Field<amount> { }
+
+		[PXDBDecimal]
+		[PXUIField(DisplayName = "Customized Amount")]
+		public decimal? Amount                  // PX1065 should be reported here because the base property without a BQL field is declared in the extension 
+		{
+			get;
+			set;
+		}
+		#endregion
 	}
 
+	// Acuminator disable once PX1069 MissingMandatoryDacFields [Justification]
 	[PXHidden]
 	public class BaseDac : PXBqlTable, IBqlTable
 	{
@@ -35,6 +49,17 @@ namespace PX.Analyzers.Test.Sources
 		[PXInt]
 		public virtual int? ShipmentNbr { get; set; }
 
-		public virtual string ExtraData { get; set; }
+		public virtual string? ExtraData { get; set; }
+		#region Amount
+		public abstract class amount : PX.Data.BQL.BqlDecimal.Field<amount> { }
+
+		[PXDBDecimal]
+		[PXUIField(DisplayName = "Amount")]
+		public decimal? Amount              // PX1065 should be reported here because the property does not have a BQL field
+		{
+			get;
+			set;
+		}
+		#endregion
 	}
 }

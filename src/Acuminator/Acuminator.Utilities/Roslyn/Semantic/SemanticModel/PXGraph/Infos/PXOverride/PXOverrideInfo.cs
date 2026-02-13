@@ -21,6 +21,15 @@ namespace Acuminator.Utilities.Roslyn.Semantic.PXGraph
 		/// </summary>
 		public IMethodSymbol? BaseMethod { get; }
 
+		/// <summary>
+		/// Indicates whether the PXOverride method signature has a non-trivial ref kind:
+		/// <list type="bullet">
+		/// <item><see langword="ref"/>, <see langword="out"/>, <see langword="in"/>, or <see langword="ref readonly"/> parameters</item>
+		/// <item><see langword="ref"/> or <see langword="ref readonly"/> return type</item>
+		/// </list>
+		/// </summary>
+		public bool SignatureHasNonTrivialRefKind { get; }
+
 		public PXOverrideInfo(IMethodSymbol symbol, PXOverrideType pxOverrideType, IMethodSymbol? baseMethod, int declarationOrder) : 
 						base(symbol, declarationOrder)
 		{
@@ -29,9 +38,14 @@ namespace Acuminator.Utilities.Roslyn.Semantic.PXGraph
 
 			OverrideType = pxOverrideType;
 			BaseMethod = baseMethod;
+			SignatureHasNonTrivialRefKind = DoesSignatureHaveNonTrivialRefKind(symbol);
 		}
 
-		internal static IEnumerable<PXOverrideInfo> GetDeclaredPXOverrides(GraphOrGraphExtInfoBase graphExtensionInfo, PXContext context, 
+		private static bool DoesSignatureHaveNonTrivialRefKind(IMethodSymbol patchMethod) =>
+			patchMethod.RefKind != RefKind.None ||
+			(!patchMethod.Parameters.IsDefaultOrEmpty && patchMethod.Parameters.Any(param => param.RefKind != RefKind.None));
+
+		internal static IEnumerable<PXOverrideInfo> GetDeclaredPXOverrides(GraphExtensionInfo graphExtensionInfo, PXContext context, 
 																		   CancellationToken cancellation)
 		{
 			cancellation.ThrowIfCancellationRequested();
@@ -46,7 +60,15 @@ namespace Acuminator.Utilities.Roslyn.Semantic.PXGraph
 																	.Select(info => info.Symbol)
 																	.Distinct<ITypeSymbol>(SymbolEqualityComparer.Default)
 																	.Where(baseType => !directBaseTypesAndThis.Contains(baseType, SymbolEqualityComparer.Default))
-																	.ToList(capacity: 4);
+																	.ToList(capacity: 8);
+			if (graphExtensionInfo.BaseGraph != null)
+			{
+				// To recognize methods from the base PXGraph we must also include base graph types
+				var baseGraphTypes = graphExtensionInfo.BaseGraph.Symbol.GetBaseTypesAndThis()
+																		.SkipWhile(baseType => !baseType.IsGraphBaseType())
+																		.TakeWhile(baseType => baseType.SpecialType != SpecialType.System_Object);
+				graphAndGraphExtensionBaseTypes.AddRange(baseGraphTypes);
+			}
 
 			var declaredMethods = graphExtensionInfo.Symbol.GetMethods();
 			int declarationOrder = 0;

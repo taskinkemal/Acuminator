@@ -153,6 +153,10 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 		public Task BaseTypeImplementsPxGraphExtension(string source) => VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]
+		[EmbeddedFileData(@"SignatureMismatch\PXOverrideOfMethodFromBasePXGraph.cs")]
+		public Task PXOverride_OfMethod_FromBasePXGraph(string source) => VerifyCSharpDiagnosticAsync(source);
+
+		[Theory]
 		[EmbeddedFileData(@"SignatureMismatch\BaseTypeImplementsPxGraphExtensionSignatureIsWrong.cs")]
 		public Task BaseTypeImplementsPxGraphExtensionSignatureIsWrong(string source)
 		{
@@ -160,6 +164,13 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 				Descriptors.PX1096_PXOverrideMustMatchSignature.CreateFor(21, 17)
 			);
 		}
+
+		[Theory]
+		[EmbeddedFileData(@"SignatureMismatch\PXOverrideRefAndOutParametersMismatch.cs")]
+		public Task PXOverride_RefAndOutParameters_Mismatch_WithBaseMethod(string source) =>
+			VerifyCSharpDiagnosticAsync(source,
+				Descriptors.PX1096_PXOverrideMustMatchSignature.CreateFor(15, 15)
+			);
 
 		[Theory]
 		[EmbeddedFileData(@"SignatureMismatch\BaseTypeDefinedAsExtension.cs")]
@@ -178,6 +189,12 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 		[EmbeddedFileData(@"SignatureMismatch\OverridenMethodIsInTheBaseOfTheBaseExtension.cs")]
 		public Task OverriddenMethodIsInTheBaseOfTheBaseExtension(string source) => VerifyCSharpDiagnosticAsync(source);
 
+
+		[Theory]
+		[EmbeddedFileData(@"SignatureMismatch\InvalidPXActionSignature_WithPXOverride.cs")]
+		public Task Overridden_ActionDelegate_With_SignatureMismatch(string source) => 
+			VerifyCSharpDiagnosticAsync(source,
+				Descriptors.PX1096_PXOverrideMustMatchSignature.CreateFor(15, 15));
 
 		private sealed class PXOverrideAnalyzerForSignatureMismatchTests : PXOverrideAnalyzer
 		{

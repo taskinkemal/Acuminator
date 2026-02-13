@@ -35,6 +35,10 @@ namespace Acuminator.Analyzers.StaticAnalysis.PXOverride
 		protected override Task RegisterCodeFixesForDiagnosticAsync(CodeFixContext context, Diagnostic diagnostic)
 		{
 			context.CancellationToken.ThrowIfCancellationRequested();
+
+			if (!diagnostic.IsRegisteredForCodeFix())
+				return Task.CompletedTask;
+
 			var fixMode = GetFixMode(diagnostic);
 
 			if (!fixMode.HasValue)

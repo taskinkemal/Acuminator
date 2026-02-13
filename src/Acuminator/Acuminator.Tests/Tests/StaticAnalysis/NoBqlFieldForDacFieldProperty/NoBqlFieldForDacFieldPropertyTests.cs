@@ -47,26 +47,28 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.NoBqlFieldForDacFieldProperty
 		[Theory]
 		[EmbeddedFileData(@"MissingBqlField\DacWithBqlFieldMissingInBaseDac.cs")]
 		public async Task DerivedDac_BasedDac_WithoutBqlFields(string actual) => await VerifyCSharpDiagnosticAsync(actual,
-			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(8, 15, "ShipmentNbr"),
-			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(23, 23, "ShipmentNbr"));
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(19, 28, "Amount"),
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(36, 23, "ShipmentNbr"),
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(43, 27, "Amount"));
 
 		[Theory]
 		[EmbeddedFileData(@"MissingBqlField\DacExtensionWithBqlFieldMissingInBaseDac.cs")]
 		public async Task DacExtension_BasedDac_WithoutBqlFields(string actual) => await VerifyCSharpDiagnosticAsync(actual,
-			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(9, 22, "ShipmentNbr"),
-			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(18, 16, "Selected"),
-			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(34, 23, "ShipmentNbr"));
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(20, 16, "Selected"),
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(30, 19, "Amount"),
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(47, 23, "ShipmentNbr"),
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(54, 19, "Amount"));
 
 		[Theory]
 		[EmbeddedFileData(@"MissingBqlField\DacWithBqlFieldMissingInExternalBaseDac.cs")]
 		public async Task DerivedDac_BasedDacInExternalDll_WithoutBqlFields(string actual) => await VerifyCSharpDiagnosticAsync(actual,
-			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(8, 15, "ShipmentNbr"),
-			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(12, 25, "OrderNbr"));
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(13, 25, "OrderNbr"),
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(22, 19, "Amount"));
 
 		[Theory]
 		[EmbeddedFileData(@"MissingBqlField\DacExtensionWithBqlFieldMissingInExternalBaseDac.cs")]
 		public async Task DacExtension_BasedDacInExternalDll_WithoutBqlFields(string actual) => await VerifyCSharpDiagnosticAsync(actual,
-			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(11, 22, "ShipmentNbr"));
+			Descriptors.PX1065_NoBqlFieldForDacFieldProperty.CreateFor(21, 19, "Amount"));
 
 		[Theory]
 		[EmbeddedFileData(@"MissingBqlField\DacWithoutBqlFields.cs", @"MissingBqlField\DacWithoutBqlFields_Expected.cs")]

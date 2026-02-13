@@ -26,36 +26,36 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.DacPropertyAttributes
 
 		[Theory]
 		[EmbeddedFileData("DacWithMultipleFieldTypeAttributes.cs")]
-		public virtual Task PropertyWithMultipleFieldTypeAttributes(string source) =>
+		public virtual Task Property_WithMultiple_FieldTypeAttributes(string source) =>
 			VerifyCSharpDiagnosticAsync(source,
 				Descriptors.PX1023_MultipleTypeAttributesOnProperty.CreateFor(line: 24, column: 4),
 				Descriptors.PX1023_MultipleTypeAttributesOnProperty.CreateFor(line: 25, column: 4));
 
 		[Theory]
 		[EmbeddedFileData("DacWithMultipleCalcedOnDbSideAttributes.cs")]
-		public virtual Task PropertyWithMultipleCalcedOnDbSideAttributes(string source) =>
+		public virtual Task Property_WithMultiple_CalcedOnDbSideAttributes(string source) =>
 			VerifyCSharpDiagnosticAsync(source,
 				Descriptors.PX1023_MultipleCalcedOnDbSideAttributesOnProperty.CreateFor(line: 16, column: 4),
 				Descriptors.PX1023_MultipleCalcedOnDbSideAttributesOnProperty.CreateFor(line: 17, column: 4));
 
 		[Theory]
 		[EmbeddedFileData("DacWithMultipleFieldTypeAttributes_Expected.cs")]
-		public virtual Task MultipleFieldTypeAttributes_ShouldNotShowDiagnostic(string source) =>
+		public virtual Task Multiple_FieldTypeAttributes_ShouldNotShowDiagnostic(string source) =>
 			VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]
 		[EmbeddedFileData("DacWithMultipleCalcedOnDbSideAttributes_Expected.cs")]
-		public virtual Task MultipleCalcedOnDbSideAttributes_ShouldNotShowDiagnostic(string source) =>
+		public virtual Task Multiple_CalcedOnDbSideAttributes_ShouldNotShowDiagnostic(string source) =>
 			VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]
 		[EmbeddedFileData("DacFieldAttributesTypeMismatch_Expected.cs")]
-		public virtual Task DacPropertyTypeNotMatchingAttributeType_ShouldNotShowDiagnostic(string source) =>
+		public virtual Task DacPropertyType_NotMatching_AttributeType_ShouldNotShowDiagnostic(string source) =>
 			VerifyCSharpDiagnosticAsync(source);	
 
 		[Theory]
 		[EmbeddedFileData("DacFieldAttributesTypeMismatch.cs")]
-		public virtual Task DacPropertyTypeNotMatchingAttributeType(string source) =>
+		public virtual Task DacPropertyType_NotMatching_AttributeType(string source) =>
 			VerifyCSharpDiagnosticAsync(source,
 				Descriptors.PX1021_PXDBFieldAttributeNotMatchingDacProperty.CreateFor((Line: 24, Column: 4), 
 					extraLocation: (Line: 26, Column: 10)),
@@ -74,24 +74,29 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.DacPropertyAttributes
 
 		[Theory]
 		[EmbeddedFileData("DacWithInvalidAggregatorAttributes.cs")]
-		public virtual Task DacPropertyWithInvalidAggregatorAttributes(string source) =>
+		public virtual Task DacProperty_WithInvalid_AggregatorAttributes(string source) =>
 			VerifyCSharpDiagnosticAsync(source,
 				Descriptors.PX1023_MultipleCalcedOnDbSideAttributesOnAggregators.CreateFor(line: 41, column: 4),
 				Descriptors.PX1023_MultipleTypeAttributesOnAggregators.CreateFor(line: 55, column: 4));
 
 		[Theory]
 		[EmbeddedFileData("DacFieldTypeMismatchPXDBScalarAttr.cs")]
-		public virtual Task DacPropertyWithPXDBScalarAttribute(string source) =>
+		public virtual Task DacProperty_WithPXDBScalarAttribute(string source) =>
 			VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]
 		[EmbeddedFileData("DacWithValidAggregatorAttributes.cs")]
-		public virtual Task DacWithValidAggregatorAttributes(string source) =>
+		public virtual Task Dac_WithValid_AggregatorAttributes(string source) =>
+			VerifyCSharpDiagnosticAsync(source);
+
+		[Theory]
+		[EmbeddedFileData("DacWithPXDBPackedIntegerArrayAttribute.cs")]
+		public virtual Task Dac_WithPXDBPackedIntegerArrayAttribute(string source) =>
 			VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]
 		[EmbeddedFileData("DacFieldWithINUnitAttribute.cs")]
-		public virtual Task DacFieldWithINUnitAttribute(string source) =>
+		public virtual Task DacField_WithINUnitAttribute(string source) =>
 			VerifyCSharpDiagnosticAsync(source);
 	}
 }

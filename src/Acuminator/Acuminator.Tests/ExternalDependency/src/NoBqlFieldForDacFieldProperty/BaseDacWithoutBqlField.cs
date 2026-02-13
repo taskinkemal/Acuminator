@@ -19,5 +19,15 @@ namespace ExternalDependency.NoBqlFieldForDacFieldProperty
 		public virtual int? ShipmentNbr { get; set; }
 
 		public virtual string? ExtraData { get; set; }
+
+		#region Amount
+		[PXDBDecimal]
+		[PXUIField(DisplayName = "Amount")]
+		public decimal? Amount              // PX1065 should be reported here because the property does not have a BQL field
+		{
+			get;
+			set;
+		}
+		#endregion
 	}
 }

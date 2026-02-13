@@ -255,6 +255,9 @@
   <data name="PX1038" xml:space="preserve">
     <value>AsyncVoidMethodsAndLambdas</value>
   </data>
+  <data name="PX1039" xml:space="preserve">
+    <value>UseOfNamespaceReservedByAcumatica</value>
+  </data>
   <data name="PX1040" xml:space="preserve">
     <value>ConstructorInGraphExtension</value>
   </data>

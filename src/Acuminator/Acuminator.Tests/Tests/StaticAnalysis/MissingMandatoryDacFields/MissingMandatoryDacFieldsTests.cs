@@ -51,7 +51,17 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.MissingMandatoryDacFields
 
 		[Theory]
 		[EmbeddedFileData("UnboundDac.cs")]
-		public async Task UnboundDac_NoDiagnostic(string source) =>
+		public async Task UnboundDac_Regular_NoDiagnostic(string source) =>
+			await VerifyCSharpDiagnosticAsync(source);
+
+		[Theory]
+		[EmbeddedFileData("UnboundDac_WithNoteID.cs")]
+		public async Task UnboundDac_WithNoteID_NoDiagnostic(string source) =>
+			await VerifyCSharpDiagnosticAsync(source);
+
+		[Theory]
+		[EmbeddedFileData("UnboundDac_WithPXVirtualAttribute.cs")]
+		public async Task UnboundDac_WithPXVirtualAttribute_NoDiagnostic(string source) =>
 			await VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]

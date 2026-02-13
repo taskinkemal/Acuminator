@@ -34,7 +34,7 @@ namespace Acuminator.Analyzers.StaticAnalysis.NoBqlFieldForDacFieldProperty
 		{
 			context.CancellationToken.ThrowIfCancellationRequested();
 
-			if (!diagnostic.IsRegisteredForCodeFix() ||
+			if (!diagnostic.IsRegisteredForCodeFix(considerRegisteredByDefault: false) ||
 				!diagnostic.TryGetPropertyValue(DiagnosticProperty.DacFieldName, out string? dacFieldName) ||
 				dacFieldName.IsNullOrWhiteSpace())
 			{

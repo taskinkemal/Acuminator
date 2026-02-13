@@ -38,6 +38,7 @@ namespace Acuminator.Runner.Constants
 		public const string AcuminatorWorkModeLong = "work-mode";
 
 		public const string EnableInformationalDiagnostics = "enable-info-diagnostics";
+		public const string UseNonInteractiveMode = "non-interactive";
 
 		public static class WorkModes
 		{

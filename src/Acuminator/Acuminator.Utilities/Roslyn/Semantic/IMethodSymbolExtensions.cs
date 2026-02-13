@@ -190,7 +190,7 @@ namespace Acuminator.Utilities.Roslyn.Semantic
 		/// </summary>
 		/// <param name="method">The method to act on.</param>
 		/// <returns>True if <paramref name="method"/> </returns>
-		public static bool CanBeOverriden(this IMethodSymbol method) =>
+		public static bool CanBeOverridden(this IMethodSymbol method) =>
 			method.CheckIfNull().IsVirtual || method.IsOverride || method.IsAbstract;
 
 		/// <summary>
@@ -206,8 +206,8 @@ namespace Acuminator.Utilities.Roslyn.Semantic
 		/// </remarks>
 		public static bool SignatureEquals(this IMethodSymbol method, [NotNullWhen(returnValue: true)] IMethodSymbol? methodToCheck)
 		{
-			if (!method.AreParametersEqual(methodToCheck) || !method.ReturnType.Equals(methodToCheck.ReturnType, SymbolEqualityComparer.Default) ||
-				method.IsGenericMethod != methodToCheck.IsGenericMethod)
+			if (!method.AreParametersEqual(methodToCheck) || method.IsGenericMethod != methodToCheck.IsGenericMethod ||
+				 method.RefKind != methodToCheck.RefKind || !SymbolEqualityComparer.Default.Equals(method.ReturnType, methodToCheck.ReturnType))
 			{
 				return false;
 			}
@@ -259,11 +259,17 @@ namespace Acuminator.Utilities.Roslyn.Semantic
 
 			for (var i = rangeStart; i < rangeEnd; i++)
 			{
-				if (!sourceParameters[i].Type.Equals(parametersToCheck[i].Type, SymbolEqualityComparer.Default))
+				if (!AreParametersEqual(sourceParameters[i], parametersToCheck[i]))
 					return false;
 			}
-
+			
 			return true;
+
+			//---------------------------------------Local Function-----------------------------------------------------------------
+			static bool AreParametersEqual(IParameterSymbol paramX, IParameterSymbol paramY) =>
+				paramX.RefKind == paramY.RefKind && paramX.IsOptional == paramY.IsOptional &&
+				(paramX.Type.Equals(paramY.Type, SymbolEqualityComparer.Default) ||
+				 paramX.OriginalDefinition.Type.Equals(paramY.OriginalDefinition.Type, SymbolEqualityComparer.Default));
 		}
 
 		/// <summary>

@@ -10,6 +10,7 @@ using Acuminator.Utilities.Roslyn.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Acuminator.Analyzers.StaticAnalysis.PXOverride
 {
@@ -66,8 +67,8 @@ namespace Acuminator.Analyzers.StaticAnalysis.PXOverride
 			return false;
 		} 
 
-		private static bool IsSeeAlsoWithCrefAttributeToBaseMethod(SemanticModel semanticModel, XmlNodeSyntax xmlNode, IMethodSymbol baseMethod, 
-																	CancellationToken cancellation)
+		private static bool IsSeeAlsoWithCrefAttributeToBaseMethod(SemanticModel semanticModel, XmlNodeSyntax xmlNode,
+																   IMethodSymbol baseMethod, CancellationToken cancellation)
 		{
 			const string seeAlsoName = "seealso";
 			string? elementName = xmlNode.GetDocTagName().NullIfWhiteSpace();
@@ -92,17 +93,29 @@ namespace Acuminator.Analyzers.StaticAnalysis.PXOverride
 
 				var referencedSymbol = semanticModel.GetSymbolOrFirstCandidate(crefAttribute.Cref, cancellation);
 
-				if (referencedSymbol is not IMethodSymbol referencedMethod)
-					continue;
-
-				if (SymbolEqualityComparer.Default.Equals(referencedMethod, baseMethod) ||
-					SymbolEqualityComparer.Default.Equals(referencedMethod.OriginalDefinition, baseMethod.OriginalDefinition))
-				{
+				if (DoesReferencedSymbolPointToBaseMethod(referencedSymbol, baseMethod))
 					return true;
-				}
 			}
 
 			return false;
+		}
+
+		private static bool DoesReferencedSymbolPointToBaseMethod(ISymbol? referencedSymbol, IMethodSymbol baseMethod)
+		{
+			var referencedMethod = (referencedSymbol, baseMethod.MethodKind) switch
+			{
+				(IMethodSymbol methodSymbol, _)							 => methodSymbol,
+				(IPropertySymbol propertySymbol, MethodKind.PropertyGet) => propertySymbol.GetMethod,
+				(IPropertySymbol propertySymbol, MethodKind.PropertySet) => propertySymbol.SetMethod,
+				(IEventSymbol eventSymbol, MethodKind.EventAdd)			 => eventSymbol.AddMethod,
+				(IEventSymbol eventSymbol, MethodKind.EventRemove)		 => eventSymbol.RemoveMethod,
+				(IEventSymbol eventSymbol, MethodKind.EventRaise)		 => eventSymbol.RaiseMethod,
+				_														 => null
+			};
+
+			return referencedMethod != null &&
+				  (referencedMethod.Equals(baseMethod, SymbolEqualityComparer.Default) ||
+				   referencedMethod.OriginalDefinition.Equals(baseMethod.OriginalDefinition, SymbolEqualityComparer.Default));
 		}
 
 		private static bool HasOverridesPrefix(XmlTextSyntax previousText)

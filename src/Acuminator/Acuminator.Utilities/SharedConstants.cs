@@ -26,5 +26,13 @@ namespace Acuminator
 		/// Filename of the suppression file XML schema.
 		/// </summary>
 		public const string SuppressionFileXmlSchemaFileName = "SuppressionFileSchema.xsd";
+
+		/// <summary>
+		/// The file scoped namespace declaration syntax kind. The version of Roslyn used by Acuminator is too old to have this in the SyntaxKind enum.
+		/// </summary>
+		/// <remarks>
+		/// TODO fix after upgrading to a newer Roslyn version. 
+		/// </remarks>
+		public const int FileScopedNamespaceDeclarationKind = 8845;
 	}
 }

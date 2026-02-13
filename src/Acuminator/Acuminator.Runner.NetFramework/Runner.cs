@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CommandLine;
@@ -44,27 +44,39 @@ namespace Acuminator.Runner.NetFramework
 			}
 		}
 
-		private static async Task<RunResult> RunValidationWithParsedOptionsAsync(CommandLineOptions commandLineOptions)
+		private static Task<RunResult> RunValidationWithParsedOptionsAsync(CommandLineOptions commandLineOptions)
 		{
 			var logger = TryInitalizeLogger(commandLineOptions);
 
 			if (logger == null)
-				return RunResult.RunTimeError;
+				return Task.FromResult(RunResult.RunTimeError);
 
 			Log.Logger = logger;
 
-			using var consoleCancellationSubscription = new ConsoleCancellationSubscription(logger);
-			AnalysisContext? analysisContext = CreateAnalysisContextFromCommandLineArguments(commandLineOptions);
+			if (commandLineOptions.UseNonInteractiveMode)
+			{
+				return RunValidation(CancellationToken.None);
+			}
+			else
+			{
+				using var consoleCancellationSubscription = new ConsoleCancellationSubscription(logger);
+				return RunValidation(consoleCancellationSubscription.CancellationToken);
+			}
+			
+			//------------------------------------------Local Function-------------------------------------------
+			async Task<RunResult> RunValidation(CancellationToken cancellation)
+			{
+				AnalysisContext? analysisContext = CreateAnalysisContextFromCommandLineArguments(commandLineOptions);
 
-			if (analysisContext == null)
-				return RunResult.RunTimeError;
+				if (analysisContext == null)
+					return RunResult.RunTimeError;
 
-			var analyzer = new SolutionAnalysisRunner(logger);
-			var analysisResult = await analyzer.RunAnalysisAsync(analysisContext, consoleCancellationSubscription.CancellationToken);
+				var analyzer = new SolutionAnalysisRunner(logger);
+				var analysisResult = await analyzer.RunAnalysisAsync(analysisContext, cancellation);
 
-			OutputValidationResult(logger, analysisResult, analysisContext);
-
-			return analysisResult;
+				OutputValidationResult(logger, analysisResult, analysisContext);
+				return analysisResult;
+			}
 		}
 
 		private static ILogger? TryInitalizeLogger(CommandLineOptions commandLineOptions)

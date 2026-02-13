@@ -1,6 +1,48 @@
 # Acuminator Release Notes
 This document provides information about fixes, enhancements, and key features that are available in Acuminator.
 
+## Acuminator 4.0.1: February 12, 2026
+Acuminator 4.0.1 includes the bug fixes and enhancements described in this section, as well as the features that have been implemented in previous versions. This is a hotfix release that addresses issues discovered in Acuminator 4.0.0.
+
+### New PX1039 Diagnostic
+The new [PX1039](diagnostics/PX1039.md) diagnostic forbids the use of the `PX` namespace and its sub-namespaces for ISVs, OEMs, partners, and other external developers. These namespaces are reserved for use by Acumatica. The diagnostic is active only when the **ISV Mode** is enabled in Acuminator settings in Visual Studio options 
+(`Tools -> Options -> Acuminator -> General -> Enable additional diagnostics for ISV Solution Certification`).
+
+### Improvements in Existing Diagnostics
+- The [PX1065](diagnostics/PX1065.md) diagnostic has been improved to reduce the amount of redundant alerts. The diagnostic reports missing BQL fields in DACs. Previously, it always displayed errors for a DAC extension or a derived DAC when its base DAC had a DAC field with a missing BQL field. For DAC extensions that customize DACs with multiple incorrect DAC fields, Acuminator displayed a lot of redundant alerts. After the improvement, the [PX1065](diagnostics/PX1065.md) diagnostic reports DAC fields from the base DAC only if they are customized by the DAC extension or overridden by the derived DAC.
+- The algorithm that determines whether a DAC is fully unbound from the database has been enhanced with several heuristics. Now Acuminator determines whether a DAC is fully unbound according to the following rules:
+  - A DAC with no DAC fields or with only unbound DAC fields is always considered fully unbound.
+  - A DAC marked with `PX.Data.PXVirtualAttribute` is always considered fully unbound even if it has DB bound fields.
+  - A DAC marked with `PX.Data.PXProjectionAttribute`, `PX.Data.PXAccumulatorAttribute` or any other attribute derived from `PX.Data.PXDBInterceptorAttribute` is always considered *DB bound* even if it has only unbound fields.
+  - A DAC with a DB bound `NoteID` field is considered fully unbound if `NoteID` is the only DB bound field in the DAC and all other fields in the DAC are unbound.
+
+  These changes reduced the amount of false alerts for the [PX1036](diagnostics/PX1036.md), [PX1069](diagnostics/PX1069.md), and [PX1110](diagnostics/PX1110.md) diagnostics. 
+- The detection of view delegates in graphs and graph extensions has been fixed to correctly recognize view delegates in rare scenarios.
+- The documentation for the [PX1079](diagnostics/PX1079.md), [PX1080](diagnostics/PX1080.md), and [PX1101](diagnostics/PX1101.md) diagnostics has been improved.
+
+
+### Improvements in Acuminator Console Runner
+- The new `--non-interactive` command-line flag has been added to Acuminator Console Runner. By default, Acuminator Console Runner supports interactive cancellation via `Ctrl + C` keyboard shortcut. The `--non-interactive` flag disables the interactive cancellation during the run. This allows Acuminator Console Runner to be used in non-interactive CI/CD environments such as Azure Pipelines.
+- The issue with potential redistribution of MSBuild DLLs with the Acuminator Console Runner has been fixed. 
+
+### Fixed Bugs
+- The [PX1000](diagnostics/PX1000.md) diagnostic displayed false alert for `PXOverride` methods that override action delegates of graph actions.
+- The [PX1023](diagnostics/PX1023.md) diagnostic displayed false alert for DAC fields with the `PX.Data.PXDBPackedIntegerArrayAttribute` attribute.
+- The [PX1096](diagnostics/PX1096.md) diagnostic did not report `PXOverride` methods that were incompatible with their base methods only by return types, and the signatures of their delegate parameters were fully compatible with their base methods.
+- The [PX1096](diagnostics/PX1096.md) diagnostic did not detect an incompatibility in the `ref`, `out`, `in`, and `ref readonly` parameters and return types between a `PXOverride` method and its base method.
+- The [PX1096](diagnostics/PX1096.md) diagnostic displayed false alerts for `PXOverride` methods that override methods from the `PXGraph` type, such as the `Persist` method.
+- The [PX1098](diagnostics/PX1098.md) diagnostic displayed false alert for `PXOverride` methods that override C# properties with a correct XML comment.
+- The code fix for the [PX1098](diagnostics/PX1098.md) diagnostic did not correctly generate XML doc comment for the `PXOverride` methods that override C# properties.
+- The code fix for the [PX1098](diagnostics/PX1098.md) diagnostic did not correctly handle the `PXOverride` methods with the `ref`, `out`, `in`, and `ref readonly` parameters.
+- The code fixes for the [PX1079](diagnostics/PX1079.md) and [PX1101](diagnostics/PX1101.md) diagnostics did not correctly handle the `PXOverride` methods with the `ref`, `out`, `in`, and `ref readonly` parameters and/or
+`ref` and `ref readonly` return types. After the bugfix, the diagnostics do no provide code fixes for such methods.
+- The [PX1102](diagnostics/PX1102.md) diagnostic displayed false alerts for the `PXOverride` methods that override C# properties.
+
+### Other Changes
+- Acuminator dependencies have been updated.
+
+
+
 ## Acuminator 4.0.0: December 25, 2025
 Acuminator 4.0.0 includes the bug fixes and enhancements described in this section, as well as the features that have been implemented in previous versions.
 
@@ -19,10 +61,10 @@ The `PXGraph.InstanceCreatedEvents.AddHandler` API adds event handlers to an Acu
 
 The analysis of Acumatica source code has discovered that the `PXGraph.InstanceCreatedEvents.AddHandler` API is extremely rarely used. At the same time, the required Acuminator analysis for this feature involves expensive operations and is executed in many scenarios. Therefore, the analysis of `PXGraph.InstanceCreatedEvents.AddHandler` calls has been dropped and the performance of Acuminator has been improved as the result.
 
-#### New PX1099 Diagnostic
+### New PX1099 Diagnostic
 A new [PX1099](diagnostics/PX1099.md) diagnostic has been introduced to Acuminator to flag the calls to APIs deemed as incompatible with the Acumatica Framework. Using these forbidden APIs can lead to unexpected behavior, application instability, data inconsistencies, and issues in the asynchronous code. Each forbidden API comes with its own specific reason to be banned from usage together with Acumatica Framework.
 
-##### How PX1099 Reports API Calls 
+#### How PX1099 Reports API Calls 
 The [PX1099](diagnostics/PX1099.md) diagnostic validates all API calls in the code against a configurable **list of forbidden APIs**. The API call is reported if any of the following criteria is met:
 - The API itself is in the list of forbidden APIs.
 - The namespace containing the checked API is in the list of forbidden APIs.
@@ -32,7 +74,7 @@ The [PX1099](diagnostics/PX1099.md) diagnostic validates all API calls in the co
 
 The [PX1099](diagnostics/PX1099.md) diagnostic also supports a configurable **list of allowed APIs**. A call to the API from the allowed list is not reported by the diagnostic even if the API is recognized as forbidden according to the rules above. The combination of lists of forbidden and allowed APIs allows a flexible, granular and concise configuration of the PX1099 analysis.
 
-##### PX1099 Diagnostic Settings
+#### PX1099 Diagnostic Settings
 The [PX1099](diagnostics/PX1099.md) diagnostic provides advanced configuration options that you can use to customize the diagnostic behavior. You can disable the diagnostic or configure custom files with forbidden and allowed APIs. You can find the PX1099 settings in the following Acuminator section of Visual Studio settings: `Tools -> Options -> Acuminator -> Banned API`:
 ![Banned API settings](diagnostics/images/BannedApiSettings.png)
 The following settings are available:
@@ -45,7 +87,7 @@ The **Banned APIs File** and **Allowed APIs File** settings are initially set to
 
 Note, that clearing the **Banned APIs File** and **Allowed APIs File** settings in Visual Studio will not disable the [PX1099](diagnostics/PX1099.md) diagnostic. The diagnostic will use the default lists of forbidden and allowed APIs that are embedded into the Acuminator assemblies. To disable the [PX1099](diagnostics/PX1099.md) diagnostic, you need to set the **Enable PX1099 diagnostic for banned APIs** setting to **false**.
 
-##### APIs Banned by PX1099
+#### APIs Banned by PX1099
 The [PX1099](diagnostics/PX1099.md) diagnostic comes with a default list of forbidden APIs. These APIs can be roughly divided into several groups:
 - `System.Math.Round` overloads that do not specify the midpoint rounding mode.
 - APIs to perform asynchronous and concurrent operations such as `System.Threading.Tasks.Parallel`, `System.Threading.Tasks.Task.Run`, `System.Threading.Tasks.Task.ConfigureAwait(bool)`.
@@ -57,7 +99,7 @@ The [PX1099](diagnostics/PX1099.md) diagnostic comes with a default list of forb
 
 The list of forbidden APIs may grow in the future. You can find the table with all APIs banned and allowed by the PX1099 diagnostic by default on the diagnostic [documentation page](diagnostics/PX1099.md).
 
-#### New Acuminator Diagnostics for DACs and DAC Extensions
+### New Acuminator Diagnostics for DACs and DAC Extensions
 - The new [PX1065](diagnostics/PX1065.md) diagnostic reports DAC field properties that are missing their corresponding BQL field declarations. An accompanying code fix is available to automatically generate the required BQL field, ensuring DAC integrity and preventing potential runtime errors.
 - The new [PX1066](diagnostics/PX1066.md) diagnostic detects typos in names of DAC BQL fields. An accompanying code fix changes the name of the BQL field in the solution so that it matches the name of the DAC field property.
 - The new [PX1067](diagnostics/PX1067.md) diagnostic reports BQL fields from derived DAC that are not redeclared. The code fix for this diagnostic adds redeclarations of all BQL fields declared in base DACs to the derived DAC.
@@ -69,7 +111,7 @@ The list of forbidden APIs may grow in the future. You can find the table with a
 - The new [PX1110](diagnostics/PX1110.md) diagnostic enforces that DACs with `PXDBLocalizableString` attributes also declare a `NoteID` field, preventing related runtime issues. An accompanying code fix adds the missing `NoteID` field to the DAC.
 - The new [PX1117](diagnostics/PX1117.md) diagnostic detects DAC extensions with complex non-linear type hierarchies. Extending multiple independent DAC extensions is forbidden for DAC extensions and the diagnostic reports such DAC extensions.
 
-#### New Acuminator Diagnostics for Graphs and Graph Extensions
+### New Acuminator Diagnostics for Graphs and Graph Extensions
 - The [PX1077](diagnostics/PX1077.md) diagnostic forbids private graph event handlers. The code fix for the diagnostic will attempt to change a private event handler into a `protected virtual` method. The diagnostic has been implemented by the external contributor [Kemal Taskin](https://github.com/taskinkemal). His contribution is much appreciated.
 - The new [PX1111](diagnostics/PX1111.md) diagnostic detects processing views with main DACs that do not declare a `NoteID` field.
 - The new [PX1112](diagnostics/PX1112.md) diagnostic requires that graphs and graph extensions with generic type parameters are marked as abstract classes. An accompanying code fix adds the `abstract` modifier to the graph or graph extension declaration.
@@ -78,7 +120,7 @@ The list of forbidden APIs may grow in the future. You can find the table with a
   - **Non-abstract and non-generic graph extension**: A concrete graph extension without generic type parameters.
   - **Abstract graph extension with the `PXProtectedAccess` attribute**: An abstract graph extension decorated with the `PXProtectedAccess` attribute.
 
-#### New Acuminator Diagnostics for the `PXOverride` Methods
+### New Acuminator Diagnostics for the `PXOverride` Methods
 Acuminator 4.0.0 contains a new set of diagnostics to validate best practices for the work with the `PXOverride` methods:
 - The new [PX1079](diagnostics/PX1079.md) diagnostic prohibits `PXOverride` methods without an additional delegate parameter for calling the base method. An accompanying code fix adds an additional delegate parameter to the `PXOverride` method. The type of the generated parameter matches the signature of the base method and the name of the delegate parameter is generated according to the naming conventions of Acumatica Framework.
 - The new [PX1097](diagnostics/PX1097.md) diagnostic forbids non-public or virtual `PXOverride` methods. The code fix changes the accessibility of the `PXOverride` method to `public` and removes `virtual` modifier from the method declaration.
@@ -91,7 +133,7 @@ Acuminator 4.0.0 contains a new set of diagnostics to validate best practices fo
 - The new [PX1101](diagnostics/PX1101.md) diagnostic checks that the additional delegate parameter of the `PXOverride` method has the same signature as the base method. An accompanying code fix corrects the type of the delegate parameter to match the signature of the base method. It also changes the name of the delegate parameter according to the naming conventions of Acumatica Framework.
 - The new [PX1102](diagnostics/PX1102.md) diagnostic checks that the additional delegate parameter of the `PXOverride` method has a name conforming Acumatica naming conventions. The name of the delegate parameter must start with `base_` followed by the name of the base method being overridden. An accompanying code fix renames the delegate parameter to the correct name.
 
-#### Updates in Diagnostics for the Asynchronous Code
+### Updates in Diagnostics for the Asynchronous Code
 - The existing [PX1008](diagnostics/PX1008.md) diagnostic that reports captures of screen graph by a delegate closure was enhanced to support `ILongOperationManager` and `IGraphLongOperationManager` interfaces. It now also performs the analysis of process delegates set via the `SetAsyncProcessDelegate` method.
 - The [PX1013](diagnostics/PX1013.md), [PX1046](diagnostics/PX1046.md), [PX1054](diagnostics/PX1054.md), [PX1080](diagnostics/PX1080.md), and [PX1086](diagnostics/PX1086.md) diagnostics that made checks related to long-running operations were updated to support `ILongOperationManager` and `IGraphLongOperationManager` interfaces.
 - The new [PX1038](diagnostics/PX1038.md) diagnostic forbids `async void` methods, lambdas and anonymous methods.
@@ -108,11 +150,11 @@ Acuminator 4.0.0 contains a new set of diagnostics to validate best practices fo
     public object GetDelayTaskAsync() => Task.Delay(100);
     ```
 
-#### Other New Diagnostics
+### Other New Diagnostics
 - The new [PX1115](diagnostics/PX1115.md) diagnostic checks that higher-level DAC and graph extensions have only **terminal** extensions as their *base* extensions. **Terminal DAC extension** is simply a non-abstract DAC extension. **Terminal graph extensions** have been described above in the description of the new [PX1114](diagnostics/PX1114.md) diagnostic.
 - The new [PX1116](diagnostics/PX1116.md) diagnostic checks for circular references in the type hierarchy of graph and DAC extensions.
 
-#### Improvements in Existing Diagnostics
+### Improvements in Existing Diagnostics
 - The diagnostic and code fix messages were updated to be more accurate and clear for [PX1000](diagnostics/PX1000.md), [PX1013](diagnostics/PX1013.md), [PX1041](diagnostics/PX1041.md), [PX1054](diagnostics/PX1054.md), and [PX1086](diagnostics/PX1086.md) diagnostics.
 - The analysis in the [PX1001](diagnostics/PX1001.md) diagnostic has been optimized.
 - The [PX1002](diagnostics/PX1002.md) diagnostic has been enhanced for more precise analysis by improving support for Acumatica Framework's aggregator attributes.

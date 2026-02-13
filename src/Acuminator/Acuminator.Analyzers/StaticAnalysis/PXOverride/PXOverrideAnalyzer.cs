@@ -112,26 +112,31 @@ namespace Acuminator.Analyzers.StaticAnalysis.PXOverride
 			DiagnosticDescriptor descriptor;
 			Location? location;
 			BaseDelegateParameterFixMode fixMode;
+			bool registerCodeFix;
+			string properNameOfDelegateParameter = GetProperNameOfDelegateParameter(pxOverrideInfo);
 
 			switch (pxOverrideInfo.OverrideType)
 			{
 				case PXOverrideType.WithoutBaseDelegate:
-					descriptor = Descriptors.PX1079_PXOverrideWithoutDelegateParameter;
-					location = pxOverrideInfo.Symbol.Locations.FirstOrDefault();
-					fixMode = BaseDelegateParameterFixMode.AddDelegateParameter;
+					descriptor 		= Descriptors.PX1079_PXOverrideWithoutDelegateParameter;
+					location 		= pxOverrideInfo.Symbol.Locations.FirstOrDefault();
+					fixMode 		= BaseDelegateParameterFixMode.AddDelegateParameter;
+					registerCodeFix = !pxOverrideInfo.SignatureHasNonTrivialRefKind;
 					break;
 
 				case PXOverrideType.WithInvalidBaseDelegate:
 					descriptor = Descriptors.PX1101_PXOverrideWithInvalidDelegateParameter;
 					location = GetLocationForIncorrectDelegateParameter(pxOverrideInfo.Symbol, context.CancellationToken);
 					fixMode = BaseDelegateParameterFixMode.ReplaceDelegateParameter;
+					registerCodeFix = !pxOverrideInfo.SignatureHasNonTrivialRefKind;
 					break;
 
 				case PXOverrideType.WithValidBaseDelegate
-				when !IsCorrectDelegateParameterName(pxOverrideInfo.Symbol):
+				when !IsCorrectDelegateParameterName(pxOverrideInfo.Symbol, properNameOfDelegateParameter):
 					descriptor = Descriptors.PX1102_PXOverrideInvalidNameOfDelegateParameter;
 					location = GetLocationForDelegateParameterWithIncorrectName(pxOverrideInfo.Symbol, context.CancellationToken);
 					fixMode = BaseDelegateParameterFixMode.RenameDelegateParameter;
+					registerCodeFix = true;
 					break;
 
 				default:
@@ -140,11 +145,11 @@ namespace Acuminator.Analyzers.StaticAnalysis.PXOverride
 
 			var diagnosticProperties = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
 			{
-				{ PXOverrideDiagnosticProperties.PatchMethodName, pxOverrideInfo.Symbol.Name },
+				{ DiagnosticProperty.RegisterCodeFix, registerCodeFix.ToString() },
+				{ PXOverrideDiagnosticProperties.PatchMethodName, properNameOfDelegateParameter },
 				{ PXOverrideDiagnosticProperties.DelegateParameterFixMode, fixMode.ToString() }
 			}
 			.ToImmutableDictionary();
-
 
 			var diagnostic = Diagnostic.Create(descriptor, location, diagnosticProperties);
 
@@ -167,15 +172,43 @@ namespace Acuminator.Analyzers.StaticAnalysis.PXOverride
 				   patchMethodWithPXOverride.Locations.FirstOrDefault();
 		}
 
-		private bool IsCorrectDelegateParameterName(IMethodSymbol patchMethodWithPXOverride)
+		private bool IsCorrectDelegateParameterName(IMethodSymbol patchMethod, string properMethodName)
 		{
-			if (patchMethodWithPXOverride.Parameters.IsDefaultOrEmpty)
+			var patchMethodParameters = patchMethod.Parameters;
+
+			if (patchMethodParameters.IsDefaultOrEmpty)
 				return true;
 
-			var lastParameter = patchMethodWithPXOverride.Parameters[^1];
-			string properName = $"base_{patchMethodWithPXOverride.Name}";
+			var lastParameter = patchMethodParameters[^1];
+			string properParameterName = $"base_{properMethodName}";
 
-			return lastParameter.Name.Equals(properName, StringComparison.OrdinalIgnoreCase);
+			return lastParameter.Name.Equals(properParameterName, StringComparison.OrdinalIgnoreCase);
+		}
+
+		private static string GetProperNameOfDelegateParameter(PXOverrideInfo pxOverrideInfo)
+		{
+			if (pxOverrideInfo.BaseMethod is IMethodSymbol baseMethod)
+			{
+				string baseMethodName = baseMethod.AssociatedSymbol?.Name.NullIfWhiteSpace() ?? baseMethod.Name;
+				return baseMethodName;
+			}
+			else
+			{
+				string methodName = pxOverrideInfo.Symbol.Name;
+
+				if (methodName.StartsWith("get_", StringComparison.OrdinalIgnoreCase) ||
+					methodName.StartsWith("set_", StringComparison.OrdinalIgnoreCase) ||
+					methodName.StartsWith("add_", StringComparison.OrdinalIgnoreCase))
+				{
+					methodName = methodName.Substring(4);
+				}
+				else if (methodName.StartsWith("remove_", StringComparison.OrdinalIgnoreCase))
+				{
+					methodName = methodName.Substring(7);
+				}
+
+				return methodName;
+			}
 		}
 
 		private Location? GetLocationForDelegateParameterWithIncorrectName(IMethodSymbol patchMethodWithPXOverride, CancellationToken cancellation)
@@ -218,28 +251,117 @@ namespace Acuminator.Analyzers.StaticAnalysis.PXOverride
 
 			var location = patchMethodNode.Identifier.GetLocation().NullIfLocationKindIsNone() ?? 
 						   pxOverrideInfo.Symbol.Locations.FirstOrDefault();
-			var baseMethodDocCommentID = GetPreparedReferenceToMethodText(pxOverrideInfo.BaseMethod);
-			var diagnosticProperties = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+			var baseMethodDocCommentID = GetPreparedTextWithReferenceToBaseAPI(pxOverrideInfo.BaseMethod, pxOverrideInfo);
+			ImmutableDictionary<string, string?> diagnosticProperties;
+
+			if (baseMethodDocCommentID != null)
 			{
-				{ PXOverrideDiagnosticProperties.BaseMethodDocCommentId, baseMethodDocCommentID }
+				diagnosticProperties = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+				{
+					{ PXOverrideDiagnosticProperties.BaseMethodDocCommentId, baseMethodDocCommentID }
+				}
+				.ToImmutableDictionary();
 			}
-			.ToImmutableDictionary();
+			else
+				diagnosticProperties = ImmutableDictionary<string, string?>.Empty;
 
 			var diagnostic = Diagnostic.Create(Descriptors.PX1098_PXOverrideMethodWithoutXmlDocComment, location, diagnosticProperties);
-
 			context.ReportDiagnosticWithSuppressionCheck(diagnostic, pxContext.CodeAnalysisSettings);
 		}
 
-		private static string? GetPreparedReferenceToMethodText(IMethodSymbol method)
+		private static string? GetPreparedTextWithReferenceToBaseAPI(IMethodSymbol baseMethod, PXOverrideInfo pxOverrideInfo)
 		{
-			string? methodDocCommentID = method.GetDocumentationCommentId().NullIfWhiteSpace();
-			methodDocCommentID = methodDocCommentID?.Length > 2
-				? methodDocCommentID.Substring(2)						 // Remove "M:" prefix
+			ISymbol? symbolToGetDocID = baseMethod.MethodKind switch
+			{
+				MethodKind.PropertyGet or
+				MethodKind.PropertySet or
+				MethodKind.EventAdd    or
+				MethodKind.EventRemove or
+				MethodKind.EventRaise		=> baseMethod.AssociatedSymbol,
+				MethodKind.ReducedExtension => baseMethod.ReducedFrom,
+				_							=> baseMethod
+			};
+
+			string? docCommentID = symbolToGetDocID?.GetDocumentationCommentId().NullIfWhiteSpace();
+			docCommentID = docCommentID?.Length > 2
+				? docCommentID.Substring(2)							// Remove "M:" and other API type prefixes
 				: null;
 
-			return methodDocCommentID != null
-				? methodDocCommentID.Replace(",", ", ")		// make parameters list more readable and look like the one VS inserts
-				: null;
+			if (docCommentID == null)
+				return null;
+
+			if (pxOverrideInfo.SignatureHasNonTrivialRefKind)
+				docCommentID = ProcessParametersWithNonTrivialRefKindInText(baseMethod, docCommentID);
+
+			docCommentID = docCommentID.Replace(",", ", ");			// make parameters list more readable and look like the one VS inserts
+			return docCommentID;
+		}
+
+		private static string ProcessParametersWithNonTrivialRefKindInText(IMethodSymbol baseMethod, string docCommentID)
+		{
+			var patchMethodParameters = baseMethod.Parameters;
+			docCommentID = docCommentID.Replace("@", "");			// replace ref kind indicators for parameters
+
+			if (patchMethodParameters.IsDefaultOrEmpty)
+				return docCommentID;
+
+			int openBraceIndex  = docCommentID.IndexOf('(');
+			int closeBraceIndex = docCommentID.LastIndexOf(')');
+
+			if (openBraceIndex < 0 || closeBraceIndex < openBraceIndex)
+				return docCommentID;
+
+			int parameterIndex = patchMethodParameters.Length - 1;
+			IParameterSymbol? currentParameter = patchMethodParameters[parameterIndex];
+
+			// Go from the last parameter to first for the simplicity of docCommentID modification
+			for (int i = closeBraceIndex - 1; i >= openBraceIndex; i--)
+			{
+				char c = docCommentID[i];
+
+				switch (c)
+				{
+					case '(':
+						docCommentID = InsertParameterModifierText(i + 1);
+						continue;
+
+					case ',':
+						docCommentID = InsertParameterModifierText(i + 1);
+						parameterIndex--;
+						currentParameter = parameterIndex >= 0
+							? patchMethodParameters[parameterIndex]
+							: null;
+
+						continue;
+					default:
+						continue;
+				}
+			}
+
+			return docCommentID;
+
+			//------------------------------------------------Local Function------------------------------------------------------------------
+			string InsertParameterModifierText(int indexToInsertAt)
+			{
+				const int RefReadOnlyParameterValue = 4;
+				string? parameterModifierText = currentParameter?.RefKind switch
+				{
+					RefKind.Ref => "ref ",
+					RefKind.Out => "out ",
+					RefKind.In 	=> "in ",
+					null 		=> null,
+
+					// TODO RefReadOnlyParameter enum is present in the newer versions of Roslyn but not in 3.11.
+					// Therefore, we define its value here manually. In the future after migration to a newer Roslyn version this should be removed
+					_ 			=> ((int)currentParameter.RefKind) == RefReadOnlyParameterValue
+										? "ref readonly "
+										: null
+				};
+
+				return parameterModifierText != null
+					? docCommentID.Insert(indexToInsertAt, parameterModifierText)
+					: docCommentID;
+			}
 		}
 	}
 }

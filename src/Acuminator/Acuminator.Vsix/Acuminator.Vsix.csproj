@@ -289,17 +289,14 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSIXResource.resx</DependentUpon>
     </Compile>
-
     <Compile Remove="Settings\UI\GeneralOptionsPage.cs" />
     <Compile Include="Settings\UI\GeneralOptionsPage.cs">
       <SubType>Component</SubType>
     </Compile>
-
     <Compile Remove="Settings\UI\CodeMapOptionsPage.cs" />
     <Compile Include="Settings\UI\CodeMapOptionsPage.cs">
       <SubType>Component</SubType>
     </Compile>
-
     <Compile Remove="Coloriser\Regex\Test\*.cs" />
     <EmbeddedResource Include="Coloriser\Regex\Test\*.cs" />
     <EmbeddedResource Include="Resources\VSIXResource.resx">
@@ -363,7 +360,7 @@
       <Version>16.10.31321.278</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools">
-      <Version>17.11.435</Version>
+      <Version>17.14.2120</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

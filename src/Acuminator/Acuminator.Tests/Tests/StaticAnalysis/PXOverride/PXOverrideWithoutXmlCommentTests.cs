@@ -31,6 +31,14 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 		protected override CodeFixProvider GetCSharpCodeFixProvider() => new AddXmlDocCommentWithReferenceToBaseMethodFix();
 
 		[Theory]
+		[EmbeddedFileData(@"XmlComment\PXOverrideRefAndOutParametersWithoutXmlComment.cs")]
+		public Task PXOverride_Methods_WithRefAndOutParameters_WithoutXmlDocComment(string source) =>
+			VerifyCSharpDiagnosticAsync(source,
+				Descriptors.PX1098_PXOverrideMethodWithoutXmlDocComment.CreateFor(15, 15),
+				Descriptors.PX1098_PXOverrideMethodWithoutXmlDocComment.CreateFor(24, 15),
+				Descriptors.PX1098_PXOverrideMethodWithoutXmlDocComment.CreateFor(33, 28));
+
+		[Theory]
 		[EmbeddedFileData(@"XmlComment\PXOverrideWithoutXmlComment.cs")]
 		public Task PXOverrides_WithoutXmlDocComment(string source) =>
 			VerifyCSharpDiagnosticAsync(source,
@@ -42,14 +50,42 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 				Descriptors.PX1098_PXOverrideMethodWithoutXmlDocComment.CreateFor(62, 15));
 
 		[Theory]
+		[EmbeddedFileData(@"XmlComment\PXOverrideOfPropertyFromBasePXGraphWithoutXmlComment.cs")]
+		public Task PXOverride_Property_WithoutXmlDocComment(string source) =>
+			VerifyCSharpDiagnosticAsync(source,
+				Descriptors.PX1098_PXOverrideMethodWithoutXmlDocComment.CreateFor(14, 15));
+
+		[Theory]
 		[EmbeddedFileData(@"XmlComment\PXOverrideWithoutXmlComment_Expected.cs")]
 		public Task PXOverrides_WithoutXmlDocComment_AfterCodeFix(string source) =>
 			VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]
+		[EmbeddedFileData(@"XmlComment\PXOverrideOfPropertyFromBasePXGraphWithoutXmlComment_Expected.cs")]
+		public Task PXOverride_Property_WithoutXmlDocComment_AfterCodeFix(string source) =>
+			VerifyCSharpDiagnosticAsync(source);
+
+		[Theory]
+		[EmbeddedFileData(@"XmlComment\PXOverrideRefAndOutParametersWithoutXmlComment_Expected.cs")]
+		public Task PXOverride_Methods_WithRefAndOutParameters_WithoutXmlDocComment_AfterCodeFix(string source) =>
+			VerifyCSharpDiagnosticAsync(source);
+
+		[Theory]
 		[EmbeddedFileData(@"XmlComment\PXOverrideWithoutXmlComment.cs",
 						  @"XmlComment\PXOverrideWithoutXmlComment_Expected.cs")]
-		public Task PXOverrides_WithoutXmlDocComment_CodeFix(string actual, string expected) =>
+		public Task PXOverride_Methods_WithoutXmlDocComment_CodeFix(string actual, string expected) =>
+			VerifyCSharpFixAsync(actual, expected);
+
+		[Theory]
+		[EmbeddedFileData(@"XmlComment\PXOverrideOfPropertyFromBasePXGraphWithoutXmlComment.cs",
+						  @"XmlComment\PXOverrideOfPropertyFromBasePXGraphWithoutXmlComment_Expected.cs")]
+		public Task PXOverride_Property_WithoutXmlDocComment_CodeFix(string actual, string expected) =>
+			VerifyCSharpFixAsync(actual, expected);
+
+		[Theory]
+		[EmbeddedFileData(@"XmlComment\PXOverrideRefAndOutParametersWithoutXmlComment.cs",
+						  @"XmlComment\PXOverrideRefAndOutParametersWithoutXmlComment_Expected.cs")]
+		public Task PXOverride_Methods_WithRefAndOutParameters_WithoutXmlDocComment_CodeFix(string actual, string expected) =>
 			VerifyCSharpFixAsync(actual, expected);
 
 		private sealed class PXOverrideAnalyzerForMissingXmlCommentTests : PXOverrideAnalyzer

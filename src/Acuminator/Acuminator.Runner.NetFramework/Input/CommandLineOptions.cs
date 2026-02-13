@@ -355,12 +355,29 @@ namespace Acuminator.Runner.Input
 						   """)]
 		public bool EnableInformationalDiagnostics { get; }
 
+		/// <summary>
+		/// An optional flag which forces the Acuminator Console Runner to run in non-interactive mode.<br/>
+		/// In this mode some interactive features like interactive cancellation of the analysis with "Ctrl + C" are disabled.<br/>
+		/// This mode is useful when Acuminator is run in automated environments like CI/CD pipelines where no user interaction is possible.<br/>
+		/// Some automated environments like Azure Pipelines may throw error if the application will attempt to use one of interactive features.
+		/// By default, Acuminator Console Runner runs the analysis in the interactive mode.
+		/// </summary>
+		[Option(longName: CommandLineArgNames.UseNonInteractiveMode, Default = false,
+				HelpText = $"""
+						   Optional. A flag that forces the Acuminator Console Runner to run in non-interactive mode.
+						   In this mode some interactive features like interactive cancellation of the analysis with "Ctrl + C" are disabled.
+						   This mode is useful when Acuminator is run in automated environments like CI/CD pipelines where no user interaction is possible.
+						   Some automated environments like Azure Pipelines may throw error if the application attempts to use one of interactive features.
+						   By default, Acuminator Console Runner runs the analysis in the interactive mode.
+						   """)]
+		public bool UseNonInteractiveMode { get; }
+
 		// Constructor arguments order must be the same as the properties order. This allows command line parser to initialize immutable options object via constructor.
 		// See this for details: https://github.com/commandlineparser/commandline/wiki/Immutable-Options-Type
 		public CommandLineOptions(string codeSource, string verbosity, bool disableSuppressionMechanism, string? msBuildPath, string? outputFileName, 
 								  bool outputAbsolutePathsToUsages, string? outputFormat, bool isvSpecificAnalysisIsEnabled, 
 								  bool px1007DiagnosticIsEnabled, bool disablePX1099Diagnostic, string? bannedApiFilePath, string? allowedApisFilePath,
-								  string? acuminatorWorkMode, string? reportGrouping, bool enableInformationalDiagnostics)
+								  string? acuminatorWorkMode, string? reportGrouping, bool enableInformationalDiagnostics, bool useNonInteractiveMode)
 		{
 			CodeSource 					   = codeSource;
 			Verbosity 					   = verbosity;
@@ -377,6 +394,7 @@ namespace Acuminator.Runner.Input
 			AcuminatorWorkMode 			   = acuminatorWorkMode;
 			ReportGrouping				   = reportGrouping;
 			EnableInformationalDiagnostics = enableInformationalDiagnostics;
+			UseNonInteractiveMode		   = useNonInteractiveMode;
 		}
 	}
 }

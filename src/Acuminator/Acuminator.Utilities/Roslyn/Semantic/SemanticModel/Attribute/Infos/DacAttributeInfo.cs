@@ -1,11 +1,9 @@
-﻿#nullable enable
-
-using System.ComponentModel;
+﻿using System;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 
-using static Acuminator.Utilities.Roslyn.Constants.PropertyNames;
+using AttributeFlags = (bool IsDbInterceptorAttribute, bool IsProjection, bool IsPXCacheName, bool IsPXHidden, bool IsPXAccumulator);
 
 namespace Acuminator.Utilities.Roslyn.Semantic.Attribute
 {
@@ -41,31 +39,44 @@ namespace Acuminator.Utilities.Roslyn.Semantic.Attribute
 		/// </summary>
 		public bool IsPXAccumulatorAttribute { get; }
 
+		/// <summary>
+		/// An indicator of whether the attribute is a PXDBInterceptorAttribute attribute.
+		/// </summary>
+		public bool IsDbInterceptorAttribute { get; }
+
 		public DacAttributeInfo(PXContext pxContext, AttributeData attributeData, int declarationOrder) : base(attributeData, declarationOrder)
 		{
 			if (AttributeType != null)
 			{
 				IsDefaultNavigation = AttributeType.IsDefaultNavigation(pxContext);
-				(IsPXProjection, IsPXCacheName, IsPXHidden, IsPXAccumulatorAttribute) = GetAttributeFlags(AttributeType, pxContext);
+				(IsDbInterceptorAttribute, IsPXProjection, IsPXCacheName, IsPXHidden, IsPXAccumulatorAttribute) = 
+					GetAttributeFlags(AttributeType, pxContext);
 			}
 		}
 
-		private static (bool IsProjection, bool IsPXCacheName, bool IsPXHidden, bool IsPXAccumulator) GetAttributeFlags(INamedTypeSymbol attributeType, 
-																														PXContext pxContext)
+		private static AttributeFlags GetAttributeFlags(INamedTypeSymbol attributeType, PXContext pxContext)
 		{
-			var projectionAttribute    = pxContext.AttributeTypes.PXProjectionAttribute;
+			var dbInterceptorAttribute = pxContext.AttributeTypes.PXDBInterceptorAttribute;
+			var projectionAttribute	   = pxContext.AttributeTypes.PXProjectionAttribute;
 			var pxCacheNameAttribute   = pxContext.AttributeTypes.PXCacheNameAttribute;
 			var pxHiddenAttribute 	   = pxContext.AttributeTypes.PXHiddenAttribute;
 			var pxAccumulatorAttribute = pxContext.AttributeTypes.PXAccumulatorAttribute;
 
-			bool isPXProjection  = attributeType.Equals(projectionAttribute, SymbolEqualityComparer.Default);
-			bool isPXCacheName 	 = attributeType.Equals(pxCacheNameAttribute, SymbolEqualityComparer.Default);
-			bool isPXHidden 	 = attributeType.Equals(pxHiddenAttribute, SymbolEqualityComparer.Default);
-			bool isPXAccumulator = attributeType.Equals(pxAccumulatorAttribute, SymbolEqualityComparer.Default);
+			// This is a hot path optimization to not get base attributes if possible by manually performing the first iteration
+			// PXProjection and PXAccumulator are already DB interceptors, and PXDBInterceptorAttribute is an abstract attribute.
+			// So, most likely, it won't be declared directly.
+			bool isPXProjection  		  = attributeType.Equals(projectionAttribute, SymbolEqualityComparer.Default);
+			bool isPXAccumulator 		  = !isPXProjection && attributeType.Equals(pxAccumulatorAttribute, SymbolEqualityComparer.Default);
+			bool isDbInterceptorAttribute = isPXProjection || isPXAccumulator || 
+											attributeType.Equals(dbInterceptorAttribute, SymbolEqualityComparer.Default);
 
-			if (isPXProjection || isPXCacheName || isPXHidden || isPXAccumulator)
-				return (isPXProjection, isPXCacheName, isPXHidden, isPXAccumulator);
+			bool isPXCacheName = !isDbInterceptorAttribute && attributeType.Equals(pxCacheNameAttribute, SymbolEqualityComparer.Default);
+			bool isPXHidden	   = !isDbInterceptorAttribute && attributeType.Equals(pxHiddenAttribute, SymbolEqualityComparer.Default);
 
+			if (isDbInterceptorAttribute || isPXCacheName || isPXHidden)
+				return (isDbInterceptorAttribute, isPXProjection, isPXCacheName, isPXHidden, isPXAccumulator);
+
+			// Get base attributes and check them
 			var attributeBaseTypes = attributeType.GetBaseTypes();
 
 			foreach (var baseType in attributeBaseTypes)
@@ -74,15 +85,26 @@ namespace Acuminator.Utilities.Roslyn.Semantic.Attribute
 					break;
 
 				isPXProjection 	= isPXProjection  || baseType.Equals(projectionAttribute, SymbolEqualityComparer.Default);
-				isPXCacheName  	= isPXCacheName   || baseType.Equals(pxCacheNameAttribute, SymbolEqualityComparer.Default);
-				isPXHidden	   	= isPXHidden 	  || baseType.Equals(pxHiddenAttribute, SymbolEqualityComparer.Default);
-				isPXAccumulator = isPXAccumulator || baseType.Equals(pxAccumulatorAttribute, SymbolEqualityComparer.Default);
+				isPXAccumulator = isPXAccumulator || (!isPXProjection && baseType.Equals(pxAccumulatorAttribute, SymbolEqualityComparer.Default));
+				isDbInterceptorAttribute = isDbInterceptorAttribute || isPXProjection || isPXAccumulator || 
+										   baseType.Equals(dbInterceptorAttribute, SymbolEqualityComparer.Default);
+				
+				if (isDbInterceptorAttribute)
+				{
+					isPXCacheName = false;
+					isPXHidden	  = false;
+				}
+				else
+				{
+					isPXCacheName = isPXCacheName || baseType.Equals(pxCacheNameAttribute, SymbolEqualityComparer.Default);
+					isPXHidden	  = isPXHidden || baseType.Equals(pxHiddenAttribute, SymbolEqualityComparer.Default);
+				}
 
-				if (isPXProjection || isPXCacheName || isPXHidden || isPXAccumulator)
-					return (isPXProjection, isPXCacheName, isPXHidden, isPXAccumulator);
+				if (isDbInterceptorAttribute || isPXCacheName || isPXHidden)
+					return (isDbInterceptorAttribute, isPXProjection, isPXCacheName, isPXHidden, isPXAccumulator);
 			}
 
-			return (isPXProjection, isPXCacheName, isPXHidden, isPXAccumulator);
+			return (isDbInterceptorAttribute, isPXProjection, isPXCacheName, isPXHidden, isPXAccumulator);
 		}
 	}
 }

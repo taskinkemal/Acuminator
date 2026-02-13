@@ -257,6 +257,10 @@ namespace Acuminator.Analyzers.StaticAnalysis
 			Rule("PX1038", nameof(Resources.PX1038TitleLambdas).GetLocalized(), Category.Acuminator, DiagnosticSeverity.Error,
 				DiagnosticsShortName.PX1038);
 
+		public static DiagnosticDescriptor PX1039_UseOfNamespaceReservedByAcumatica { get; } =
+			Rule("PX1039", nameof(Resources.PX1039Title).GetLocalized(), Category.Acuminator, DiagnosticSeverity.Warning,
+				DiagnosticsShortName.PX1039);
+
 		public static DiagnosticDescriptor PX1040_ConstructorInGraphExtension { get; } =
 			Rule("PX1040", nameof(Resources.PX1040Title).GetLocalized(), Category.Acuminator, DiagnosticSeverity.Error,
 				DiagnosticsShortName.PX1040);

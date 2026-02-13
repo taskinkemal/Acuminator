@@ -28,26 +28,33 @@ namespace Acuminator.Utilities.Roslyn.Semantic
 		{
 			pxOverrideMethod.ThrowOnNull();
 
-			var methodsCompatibility = GetMethodsCompatibility(baseMethod.Parameters.Length, pxOverrideMethod.Parameters.Length);
+			var baseMethodParameters = baseMethod.Parameters;
+			var pxOverrideMethodParameters = pxOverrideMethod.Parameters;
+			var methodsCompatibility = GetMethodsCompatibility(baseMethodParameters.Length, pxOverrideMethodParameters.Length);
 
 			if (methodsCompatibility == MethodsCompatibility.NotCompatible ||
-				!baseMethod.CanBeOverriden() || !baseMethod.IsAccessibleOutsideOfAssembly())
+				!baseMethod.CanBeOverridden() || !baseMethod.IsAccessibleOutsideOfAssembly())
 			{
 				return false;
 			}
 
 			if (methodsCompatibility == MethodsCompatibility.ParametersMatch)
 				return pxOverrideMethod.SignatureEquals(baseMethod);
-
-			if (methodsCompatibility == MethodsCompatibility.ParametersMatchWithDelegate)
+			else if (methodsCompatibility == MethodsCompatibility.ParametersMatchWithDelegate)
 			{
-				if (pxOverrideMethod.Parameters[pxOverrideMethod.Parameters.Length - 1].Type is not INamedTypeSymbol @delegate ||
+				if (pxOverrideMethod.IsGenericMethod != baseMethod.IsGenericMethod || pxOverrideMethod.RefKind != baseMethod.RefKind ||
+					!SymbolEqualityComparer.Default.Equals(pxOverrideMethod.ReturnType, baseMethod.ReturnType))
+				{
+					return false;
+				}
+
+				if (pxOverrideMethodParameters[pxOverrideMethodParameters.Length - 1].Type is not INamedTypeSymbol @delegate ||
 					@delegate.TypeKind != TypeKind.Delegate)
 				{
 					return false;
 				}
 
-				return baseMethod.Parameters.EqualsParameterRange(pxOverrideMethod.Parameters, rangeStart: 0, rangeEnd: baseMethod.Parameters.Length) &&
+				return baseMethodParameters.EqualsParameterRange(pxOverrideMethodParameters, rangeStart: 0, rangeEnd: baseMethodParameters.Length) &&
 					   baseMethod.SignatureEquals(@delegate.DelegateInvokeMethod);
 			}
 
@@ -86,15 +93,16 @@ namespace Acuminator.Utilities.Roslyn.Semantic
 
 			IMethodSymbol baseDelegateMethod = delegateType.DelegateInvokeMethod;
 
-			if (!baseDelegateMethod.ReturnType.Equals(methodWithBaseDelegate.ReturnType, SymbolEqualityComparer.Default) ||
-				baseDelegateMethod.Parameters.Length != (methodWithBaseDelegate.Parameters.Length - 1) ||
-				baseDelegateMethod.IsGenericMethod != methodWithBaseDelegate.IsGenericMethod)
+			if (baseDelegateMethod.Parameters.Length != (methodWithBaseDelegate.Parameters.Length - 1) ||
+				baseDelegateMethod.IsGenericMethod != methodWithBaseDelegate.IsGenericMethod ||
+				baseDelegateMethod.RefKind != methodWithBaseDelegate.RefKind ||
+			   !baseDelegateMethod.ReturnType.Equals(methodWithBaseDelegate.ReturnType, SymbolEqualityComparer.Default))
 			{
 				return false;
 			}
 
 			if (methodWithBaseDelegate.IsGenericMethod)
-				return methodWithBaseDelegate.TypeParameters.Length == baseDelegateMethod.TypeParameters.Length;     // TODO no constraints check on type parameters currently
+				return methodWithBaseDelegate.TypeParameters.Length == baseDelegateMethod.TypeParameters.Length;		// TODO no constraints check on type parameters currently
 
 			return baseDelegateMethod.Parameters.EqualsParameterRange(methodWithBaseDelegate.Parameters, 
 																	  rangeStart: 0, rangeEnd: baseDelegateMethod.Parameters.Length);

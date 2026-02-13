@@ -79,8 +79,13 @@ namespace Acuminator.Utilities.Roslyn.Semantic.PXGraph
 			method.ThrowOnNull();
 			pxContext.ThrowOnNull();
 
-			return method.ReturnType.Equals(pxContext.SystemTypes.IEnumerable, SymbolEqualityComparer.Default) &&
-				   method.Parameters.All(p => p.RefKind != RefKind.Ref);
+			if (!method.ReturnType.Equals(pxContext.SystemTypes.IEnumerable, SymbolEqualityComparer.Default))
+				return false;
+
+			var parameters = method.Parameters;
+
+			// Check that all view delegate parameters are either regular or passed by ref with a ref keyword (the second, very rare case of view delegates)
+			return parameters.All(p => p.RefKind == RefKind.None) || parameters.All(p => p.RefKind == RefKind.Ref);
 		}
 
 		public static bool IsValidInitializeMethod(this IMethodSymbol method) =>

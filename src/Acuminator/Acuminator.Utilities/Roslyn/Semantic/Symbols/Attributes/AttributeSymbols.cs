@@ -34,6 +34,8 @@ namespace Acuminator.Utilities.Roslyn.Semantic.Symbols
 		public INamedTypeSymbol? PXProtectedAccessAttribute  => Compilation.GetTypeByMetadataName(TypeFullNames.PXProtectedAccessAttribute);
 		public INamedTypeSymbol PXAccumulatorAttribute		 => Compilation.GetTypeByMetadataName(TypeFullNames.PXAccumulatorAttribute)!;
 		public INamedTypeSymbol PXNoteAttribute				 => Compilation.GetTypeByMetadataName(TypeFullNames.PXNoteAttribute)!;
+		public INamedTypeSymbol PXVirtualAttribute			 => Compilation.GetTypeByMetadataName(TypeFullNames.PXVirtualAttribute)!;
+		public INamedTypeSymbol PXDBInterceptorAttribute	 => Compilation.GetTypeByMetadataName(TypeFullNames.PXDBInterceptorAttribute)!;
 
 		private readonly Lazy<PXUIFieldAttributeSymbols> _pxUiFieldAttribute;
 		public PXUIFieldAttributeSymbols PXUIFieldAttribute => _pxUiFieldAttribute.Value;

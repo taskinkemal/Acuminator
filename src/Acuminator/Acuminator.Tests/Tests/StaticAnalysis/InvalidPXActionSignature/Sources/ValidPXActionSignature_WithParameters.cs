@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using PX.Data;
 
-namespace PX1000
+namespace Acuminator.Tests.Tests.StaticAnalysis.InvalidPXActionSignature.Sources
 {
 	public class APRegister : PXBqlTable, IBqlTable
 	{ }
+
 	class PXBaseCuryAttribute : PXDecimalAttribute
 	{
-
 	}
-	public class APDataEntryGraph<TGraph, TPrimary> : PXGraph<TGraph, TPrimary>
+
+	public abstract class APDataEntryGraph<TGraph, TPrimary> : PXGraph<TGraph, TPrimary>
 		where TGraph : PXGraph
 		where TPrimary : APRegister, new()
 	{
-		public PXAction<TPrimary> action;
+		public PXAction<TPrimary> action = null!;
+
 		protected virtual IEnumerable Action(PXAdapter adapter,
 			[PXString()]
 			string ActionName
@@ -27,7 +27,7 @@ namespace PX1000
 			return adapter.Get();
 		}
 
-		public PXAction<TPrimary> report;
+		public PXAction<TPrimary> report = null!;
 		[PXUIField(DisplayName = "Reports", MapEnableRights = PXCacheRights.Select)]
 		[PXButton(SpecialType = PXSpecialButtonType.Report)]
 		protected virtual IEnumerable Report(PXAdapter adapter,
@@ -41,7 +41,7 @@ namespace PX1000
 			return adapter.Get();
 		}
 
-		public PXAction<TPrimary> action1;
+		public PXAction<TPrimary> action1 = null!;
 		[PXUIField(DisplayName = "Actions", MapEnableRights = PXCacheRights.Select)]
 		[PXButton]
 		protected virtual IEnumerable Action1(PXAdapter adapter,
@@ -57,7 +57,7 @@ namespace PX1000
 		}
 
 
-		public PXAction<TPrimary> runReversal;
+		public PXAction<TPrimary> runReversal = null!;
 		[PXUIField(DisplayName = "we", MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]
 		[PXProcessButton]
 		// TODO: Split parameters between appropriate actions (waiting for Andrew Boulanov)
@@ -87,10 +87,10 @@ namespace PX1000
 			return adapter.Get();
 		}
 
-		public PXAction<TPrimary> UpdateIN;
+		public PXAction<TPrimary> UpdateIN = null!;
 		[PXUIField(DisplayName = "Update IN", Visible = false, MapEnableRights = PXCacheRights.Select, MapViewRights = PXCacheRights.Select)]
 		[PXButton]
-		private IEnumerable updateIN(PXAdapter adapter, List<TPrimary> shipmentList = null)
+		private IEnumerable updateIN(PXAdapter adapter, List<TPrimary>? shipmentList = null)
 		{
 			return adapter.Get();
 		}

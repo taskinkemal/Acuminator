@@ -82,7 +82,7 @@ namespace Acuminator.Analyzers.StaticAnalysis.NoBqlFieldForDacFieldProperty
 			//
 			// The second scenario only makes sense for DACs, because DAC extensions can't have derived types, 
 			// and it makes little sense to redeclare existing BQL field in the chained DAC extension.
-			if (declaredDacField.HasBqlFieldEffective && dacOrDacExt.DacType != DacType.Dac)
+			if (declaredDacField.HasBqlFieldEffective && dacOrDacExt.DacType == DacType.DacExtension)
 				return;
 
 			var declaredBqlFieldsWithTypo = FindBqlFieldInfosWithinTypoDistance(declaredDacField.Name, dacOrDacExt, declaredBqlFieldsWithWithoutProperty,
@@ -100,20 +100,20 @@ namespace Acuminator.Analyzers.StaticAnalysis.NoBqlFieldForDacFieldProperty
 		private void AnalyzeDacPropertyDeclaredInBaseTypes(SymbolAnalysisContext symbolContext, PXContext pxContext, DacSemanticModel dacOrDacExt,
 														   DacFieldInfo dacPropertyInBaseTypes, List<DacBqlFieldInfo> declaredBqlFieldsWithWithoutProperty)
 		{
-			// If the property is declared in based types and does not have a BQL field then report DAC field with PX1065 as missing BQL field
-			if (!dacPropertyInBaseTypes.HasBqlFieldEffective)
-				ReportDacPropertyWithoutBqlField(symbolContext, pxContext, dacOrDacExt, dacPropertyInBaseTypes);
+			// If the property is declared in base types and does not have a corresponding BQL field at all then
+			// Acuminator should not report the PX1065 diagnostic for the missing BQL field because there will be a lot of noise in DAC extensions and derived DACs.
+			// Even if the base DAC is located in the source code, it's unlikely that the extension authors will be able to fix the base DAC.
 
-			// Now check declared BQL fields without corresponding properties for ones with names close to the "dacPropertyInBaseTypes" name.
+			// Now check BQL fields declared in this DAC without a corresponding property for ones with names close to the "dacPropertyInBaseTypes" name.
 			// 
 			// Since the DAC field "dacPropertyInBaseTypes" is declared in dacOrDacExt base types we need to support a scenario 
-			// when BQL field with a typo is declared in the dacOrDacExt DAC and there is a DAC field with correct name in the base types.
+			// when BQL field with a typo is declared in the dacOrDacExt DAC under the validation and there is a property with correct name in the base types.
 			// It does not matter if that field has a BQL field or not - it is in base types, and checked bql fields are in derived types, 
 			// so they would be hiding base BQL field anyway.
 			//
 			// This scenario only makes sense for DACs, because DAC extensions can't have derived types, 
 			// and it makes little sense to redeclare existing BQL field in the chained DAC extension
-			if (dacOrDacExt.DacType != DacType.Dac)
+			if (dacOrDacExt.DacType == DacType.DacExtension)
 				return;
 			
 			var declaredBqlFieldsWithTypo = FindBqlFieldInfosWithinTypoDistance(dacPropertyInBaseTypes.Name, dacOrDacExt, declaredBqlFieldsWithWithoutProperty,
@@ -184,21 +184,19 @@ namespace Acuminator.Analyzers.StaticAnalysis.NoBqlFieldForDacFieldProperty
 			if (location == null)
 				return;
 
-			var properties = ImmutableDictionary<string, string?>.Empty;
 			string? propertyTypeName = dacFieldWithoutBqlField.PropertyTypeUnwrappedNullable?.GetSimplifiedName();
+			var properties = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+			{
+				{ DiagnosticProperty.RegisterCodeFix, registerCodeFix.ToString() },
+				{ DiagnosticProperty.DacFieldName,	  dacFieldWithoutBqlField.Name }
+			};
 
 			if (registerCodeFix && propertyTypeName != null)
-			{
-				properties = new Dictionary<string, string?>
-				{
-					{ DiagnosticProperty.RegisterCodeFix, bool.TrueString },
-					{ DiagnosticProperty.DacFieldName,	  dacFieldWithoutBqlField.Name },
-					{ DiagnosticProperty.PropertyType,	  propertyTypeName }
-				}
-				.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
-			}
+				properties.Add(DiagnosticProperty.PropertyType, propertyTypeName);
 
-			var diagnostic = Diagnostic.Create(Descriptors.PX1065_NoBqlFieldForDacFieldProperty, location, properties, dacFieldWithoutBqlField.Name);
+			var diagnostic = Diagnostic.Create(Descriptors.PX1065_NoBqlFieldForDacFieldProperty, location, 
+											   properties.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), 
+											   dacFieldWithoutBqlField.Name);
 			symbolContext.ReportDiagnosticWithSuppressionCheck(diagnostic, pxContext.CodeAnalysisSettings);
 		}
 
@@ -207,10 +205,9 @@ namespace Acuminator.Analyzers.StaticAnalysis.NoBqlFieldForDacFieldProperty
 			if (dacField.PropertyInfo?.IsInSource == true && dacField.IsDeclaredInType(dac.Symbol))
 			{
 				var location = dacField.PropertyInfo.Node.Identifier.GetLocation().NullIfLocationKindIsNone() ??
-							   dacField.PropertyInfo.Node.GetLocation() ??
-							   dac.Node!.Identifier.GetLocation().NullIfLocationKindIsNone();
+							   dacField.PropertyInfo.Node.GetLocation();
 
-				return (location, RegisterCodeFix: true);
+				return (location, RegisterCodeFix: location != null);
 			}
 
 			// Node is not null because aggregated DAC analysis runs only on DACs from the source code

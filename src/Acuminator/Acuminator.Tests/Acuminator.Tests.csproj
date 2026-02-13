@@ -5,7 +5,7 @@
     <AssemblyTitle>Acuminator.Tests</AssemblyTitle>
     <!-- Target framework must be net48 because net481 is not supported by our build system -->
     <TargetFramework>net48</TargetFramework>
-    <Version>4.0.0</Version>
+    <Version>4.0.1</Version>
     <LangVersion>13.0</LangVersion>
     <Nullable>enable</Nullable>
     <WarningLevel>9999</WarningLevel>

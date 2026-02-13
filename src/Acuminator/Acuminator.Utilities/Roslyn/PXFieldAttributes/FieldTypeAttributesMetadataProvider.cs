@@ -5,7 +5,6 @@ using System.Linq;
 
 using Acuminator.Utilities.Common;
 using Acuminator.Utilities.Roslyn.Semantic;
-using Acuminator.Utilities.Roslyn.Semantic.Attribute;
 
 using Microsoft.CodeAnalysis;
 
@@ -29,6 +28,8 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 		public ImmutableArray<MixedDbBoundnessAttributeInfo> SortedDacFieldTypeAttributesWithMixedDbBoundness { get; }
 
 		public ImmutableArray<ITypeSymbol> WellKnownNonDataTypeAttributes { get; }
+
+		public ImmutableDictionary<ITypeSymbol, DataTypeAttributeInfo> MetadataForWellKnownSpecialDataTypeAttributes { get; }
 
 		private readonly INamedTypeSymbol _pxDBCalcedAttribute;
 		private readonly INamedTypeSymbol _pxDBScalarAttribute;
@@ -59,6 +60,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 																.ToImmutableArray();
 
 			WellKnownNonDataTypeAttributes = GetWellKnownNonDataTypeAttributes(_pxContext);
+			MetadataForWellKnownSpecialDataTypeAttributes = GetMetadataForWellKnownSpecialDataTypeAttributes(_pxContext);
 		}
 
 		public bool IsWellKnownNonDataTypeAttribute(ITypeSymbol attribute)
@@ -89,6 +91,11 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 		{
 			if (flattenedAttributes.Count == 0)
 				return [];
+
+			var metadataForWellKnownSpecialDataTypeAttribute = TryGetMetadataForWellKnownSpecialDataTypeAttribute(originalAttribute);
+			
+			if (metadataForWellKnownSpecialDataTypeAttribute != null)
+				return [metadataForWellKnownSpecialDataTypeAttribute];
 
 			var mixedDbBoundnessAttributeInfos = GetMixedDbBoundnessAttributeInfosInFlattenedSet(originalAttribute, flattenedAttributes);
 			bool hasMixedBoundnessAttributes = mixedDbBoundnessAttributeInfos?.Count > 0;
@@ -125,6 +132,27 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 			}
 
 			return typeAttributeInfos as IReadOnlyCollection<DataTypeAttributeInfo> ?? [];
+		}
+
+		private DataTypeAttributeInfo? TryGetMetadataForWellKnownSpecialDataTypeAttribute(ITypeSymbol attribute) 
+		{
+			if (MetadataForWellKnownSpecialDataTypeAttributes.Count == 0)
+				return null;
+			else if (MetadataForWellKnownSpecialDataTypeAttributes.TryGetValue(attribute, out var metadata))
+				return metadata;
+
+			var baseAttributeTypes = attribute.GetBaseTypes();
+
+			foreach (ITypeSymbol baseAttributeType in baseAttributeTypes)
+			{
+				if (baseAttributeType.SpecialType == SpecialType.System_Object)
+					return null;
+
+				if (MetadataForWellKnownSpecialDataTypeAttributes.TryGetValue(baseAttributeType, out var metadata))
+					return metadata;
+			}
+
+			return null;
 		}
 
 		/// <summary>
@@ -255,11 +283,11 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 				{ pxContext.FieldAttributes.PXDBDataLengthAttribute,   pxContext.SystemTypes.Int64 },
 			};
 
-			var packagedIntegerAttribute = pxContext.FieldAttributes.PXDBPackedIntegerArrayAttribute;
+			var packedIntegerAttribute = pxContext.FieldAttributes.PXDBPackedIntegerArrayAttribute;
 
-			if (packagedIntegerAttribute != null)
+			if (packedIntegerAttribute != null)
 			{
-				types.Add(packagedIntegerAttribute, pxContext.SystemTypes.UInt16Array);
+				types.Add(packedIntegerAttribute, pxContext.SystemTypes.UInt16Array);
 			}
 
 			return types;
@@ -290,7 +318,7 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 
 		private static ImmutableArray<ITypeSymbol> GetWellKnownNonDataTypeAttributes(PXContext pxContext)
 		{
-			var wellKnownNonDataTypeAttributes = ImmutableArray.CreateBuilder<ITypeSymbol>(initialCapacity: 6);
+			var wellKnownNonDataTypeAttributes = ImmutableArray.CreateBuilder<ITypeSymbol>(initialCapacity: 9);
 
 			wellKnownNonDataTypeAttributes.Add(pxContext.AttributeTypes.PXUIFieldAttribute.Type);
 			wellKnownNonDataTypeAttributes.Add(pxContext.AttributeTypes.PXDefaultAttribute);
@@ -298,8 +326,34 @@ namespace Acuminator.Utilities.Roslyn.PXFieldAttributes
 			wellKnownNonDataTypeAttributes.Add(pxContext.AttributeTypes.PXIntListAttribute.Type);
 			wellKnownNonDataTypeAttributes.Add(pxContext.AttributeTypes.PXSelectorAttribute.Type);
 			wellKnownNonDataTypeAttributes.Add(pxContext.AttributeTypes.PXForeignReferenceAttribute);
+			wellKnownNonDataTypeAttributes.Add(pxContext.AttributeTypes.PXParentAttribute);
+			wellKnownNonDataTypeAttributes.Add(pxContext.AttributeTypes.PXDBDefaultAttribute);
+
+			if (pxContext.AttributeTypes.AutoNumberAttribute.IsDefined)
+				wellKnownNonDataTypeAttributes.Add(pxContext.AttributeTypes.AutoNumberAttribute.Type!);
 
 			return wellKnownNonDataTypeAttributes.ToImmutable();
+		}
+
+		private static ImmutableDictionary<ITypeSymbol, DataTypeAttributeInfo> GetMetadataForWellKnownSpecialDataTypeAttributes(PXContext pxContext)
+		{
+			ImmutableDictionary<ITypeSymbol, DataTypeAttributeInfo>? metadataForWellKnownSpecialDataTypeAttributes = null;
+			var packedIntegerAttribute = pxContext.FieldAttributes.PXDBPackedIntegerArrayAttribute;
+
+			if (packedIntegerAttribute != null)
+			{
+				// PXDBPackedIntegerArrayAttribute is a special attribute written in a very hacky way.
+				// It derives from PXDBBinaryAttribute which works with byte[] but in reality PXDBPackedIntegerArrayAttribute works with ushort[].
+				// This breaks Acumatica design principle where derived attribute work on properties with the same property type as their base attribute.
+				// Thus, the attribute needs special handling in Acuminator.
+				var packedIntegerMetadata = new DataTypeAttributeInfo(FieldTypeAttributeKind.BoundTypeAttribute, packedIntegerAttribute,
+																	  pxContext.SystemTypes.UInt16Array);
+				metadataForWellKnownSpecialDataTypeAttributes = 
+					ImmutableDictionary.CreateRange(SymbolEqualityComparer.Default,
+													new[] { KeyValuePair.Create(packedIntegerAttribute as ITypeSymbol, packedIntegerMetadata) });
+			}
+
+			return metadataForWellKnownSpecialDataTypeAttributes ?? ImmutableDictionary<ITypeSymbol, DataTypeAttributeInfo>.Empty;
 		}
 	}
 }

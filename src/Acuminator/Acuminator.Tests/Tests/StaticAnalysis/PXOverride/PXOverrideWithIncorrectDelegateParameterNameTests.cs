@@ -31,8 +31,22 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 		protected override CodeFixProvider GetCSharpCodeFixProvider() => new AddOrReplaceOrRenameBaseDelegateParameterFix();
 
 		[Theory]
+		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideOfPropertyFromBasePXGraphWithIncorrectDelegateParameterName.cs")]
+		public Task PXOverride_OfProperty_WithIncorrect_BaseDelegateParameter_Name(string source) =>
+			VerifyCSharpDiagnosticAsync(source,
+				Descriptors.PX1102_PXOverrideInvalidNameOfDelegateParameter.CreateFor(15, 46));
+
+		[Theory]
+		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideRefAndOutParametersWithIncorrectDelegateParameterName.cs")]
+		public Task PXOverrides_WithRefAndOutParameters_And_Incorrect_BaseDelegateParameter_Name(string source) =>
+			VerifyCSharpDiagnosticAsync(source,
+				Descriptors.PX1102_PXOverrideInvalidNameOfDelegateParameter.CreateFor(15, 111),
+				Descriptors.PX1102_PXOverrideInvalidNameOfDelegateParameter.CreateFor(24, 111),
+				Descriptors.PX1102_PXOverrideInvalidNameOfDelegateParameter.CreateFor(33, 77));
+
+		[Theory]
 		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideWithIncorrectDelegateParameterName.cs")]
-		public Task PXOverrides_With_Incorrect_DelegateParameter_Name(string source) =>
+		public Task PXOverrides_With_Incorrect_BaseDelegateParameter_Name(string source) =>
 			VerifyCSharpDiagnosticAsync(source,
 				Descriptors.PX1102_PXOverrideInvalidNameOfDelegateParameter.CreateFor(14, 96),
 				Descriptors.PX1102_PXOverrideInvalidNameOfDelegateParameter.CreateFor(17, 132),
@@ -41,15 +55,36 @@ namespace Acuminator.Tests.Tests.StaticAnalysis.PXOverride
 
 		[Theory]
 		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideWithIncorrectDelegateParameterName_Expected.cs")]
-		public Task PXOverrides_With_Incorrect_DelegateParameter_Name_AfterCodeFix(string source) =>
+		public Task PXOverrides_With_Incorrect_BaseDelegateParameter_Name_AfterCodeFix(string source) =>
+			VerifyCSharpDiagnosticAsync(source);
+
+		[Theory]
+		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideRefAndOutParametersWithIncorrectDelegateParameterName_Expected.cs")]
+		public Task PXOverrides_WithRefAndOutParameters_And_Incorrect_BaseDelegateParameter_Name_AfterCodeFix(string source) =>
+			VerifyCSharpDiagnosticAsync(source);
+
+		[Theory]
+		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideOfPropertyFromBasePXGraphWithIncorrectDelegateParameterName_Expected.cs")]
+		public Task PXOverride_OfProperty_WithIncorrect_BaseDelegateParameter_Name_AfterCodeFix(string source) =>
 			VerifyCSharpDiagnosticAsync(source);
 
 		[Theory]
 		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideWithIncorrectDelegateParameterName.cs",
 						  @"BaseDelegateParameter\InvalidParameterName\PXOverrideWithIncorrectDelegateParameterName_Expected.cs")]
-		public Task PXOverrides_With_Incorrect_DelegateParameter_Name_CodeFix(string actual, string expected) =>
+		public Task PXOverrides_With_Incorrect_BaseDelegateParameter_Name_CodeFix(string actual, string expected) =>
 			VerifyCSharpFixAsync(actual, expected);
 
+		[Theory]
+		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideRefAndOutParametersWithIncorrectDelegateParameterName.cs",
+						  @"BaseDelegateParameter\InvalidParameterName\PXOverrideRefAndOutParametersWithIncorrectDelegateParameterName_Expected.cs")]
+		public Task PXOverrides_WithRefAndOutParameters_And_Incorrect_BaseDelegateParameter_Name_CodeFix(string actual, string expected) =>
+			VerifyCSharpFixAsync(actual, expected);
+
+		[Theory]
+		[EmbeddedFileData(@"BaseDelegateParameter\InvalidParameterName\PXOverrideOfPropertyFromBasePXGraphWithIncorrectDelegateParameterName.cs",
+						  @"BaseDelegateParameter\InvalidParameterName\PXOverrideOfPropertyFromBasePXGraphWithIncorrectDelegateParameterName_Expected.cs")]
+		public Task PXOverride_OfProperty_WithIncorrect_BaseDelegateParameter_Name_CodeFix(string actual, string expected) =>
+			VerifyCSharpFixAsync(actual, expected);
 
 		private sealed class PXOverrideAnalyzerForIncorrectDelegateParameterNameTests : PXOverrideAnalyzer
 		{

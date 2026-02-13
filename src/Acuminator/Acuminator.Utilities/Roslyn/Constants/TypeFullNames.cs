@@ -185,6 +185,8 @@
 		public const string PXDBDefaultAttribute 		 = "PX.Data.PXDBDefaultAttribute";
 		public const string PXAccumulatorAttribute 		 = "PX.Data.PXAccumulatorAttribute";
 		public const string PXNoteAttribute 			 = "PX.Data.PXNoteAttribute";
+		public const string PXVirtualAttribute			 = "PX.Data.PXVirtualAttribute";
+		public const string PXDBInterceptorAttribute	 = "PX.Data.PXDBInterceptorAttribute";
 
 		public const string PXView = "PX.Data.PXView";
 
